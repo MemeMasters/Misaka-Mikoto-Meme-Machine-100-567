@@ -7,7 +7,8 @@ Client = discord.Client()
 bot_prefix= "!"
 client = commands.Bot(command_prefix=bot_prefix)
 
-CritLines = ["Headshot!", "Critical Hit!", "Oof", "Booyeah!", "Crit!"]
+CritLines = ["Headshot!", "Critical Hit!", "Booyeah!", "Crit!", "Finish him!", "Get pwn'd!"]
+CritFailLines = ["Oof", "Fatality!", "Ouch, ooch, oof your bones!", "That'll hurt in the morning..."]
 
 @client.event
 async def on_ready():
@@ -36,41 +37,50 @@ async def stats(ctx):
 
 @client.command()
 async def roll(QuantitySides: str):
-    Devider = 0
-    i = 0
-    while i < len(QuantitySides):
-        letter = QuantitySides[i]
-        if letter == "D" or letter == "d":
-            Devider = i
-        i = i + 1
-    if Devider == 0:
-        await client.say("Invalid format '{}'. Use '!roll xDy' \n x = Number of dice, \n y = Dice sides. \n IE: '!roll 2D6'.".format(QuantitySides))
-        return
-    Quantity = int(QuantitySides[:Devider])
-    Sides    = int(QuantitySides[Devider+1:])
-    print("Rolling " + str(Quantity)+ " " +str(Sides) + " sided dice.")
-    if Quantity > 100:
-        print("ERROR! TOO MANY DICE! BEEEEEEEEEEEEEEEEEEEEEEEEEP")
-        await client.say("ERROR! TOO MANY DICE! BEEEEEEEEEEEEEEEEEEEEEEEEEP")
-        return
-    Total = 0
-    TotalCrits = 0
-    i = 0
-    while i < Quantity:
-        global Canceling
-        Roll = random.randint(1,Sides)
-        print("Rolled " + str(Roll) + ".")
-        if Roll == Sides:
-            TotalCrits = TotalCrits + 1
-            print("Crit!")
-        Total += Roll
-        i = i + 1
-    print("Total is " + str(Total) + " with " + str(TotalCrits) + " crits!")
-    await client.say(str(Total) + " with " + str(TotalCrits) + " crits!")
-    if Quantity == 1 and Total == Sides:
-        await client.say(CritLines[random.randint(0, len(CritLines)-1 )])
-    if Total == 69:
-        await client.say("Nice.")
+	#Identify Devider, Quantity, Sides, Etc...
+	Devider = 0
+	i = 0
+	while i < len(QuantitySides):
+		letter = QuantitySides[i]
+		if letter == "D" or letter == "d":
+			Devider = i
+		i = i + 1
+	Quantity = int(QuantitySides[:Devider])
+	Sides    = int(QuantitySides[Devider+1:])
+
+	#Check formatting and tell you to screw off
+	if Devider == 0:
+		await client.say("'{}'? That's not how you roll a dice, silly! Use '!roll xDy' \n x = Number of dice, \n y = Dice sides. \n IE: '!roll 2D6'.".format(QuantitySides))
+		return
+	print("Rolling " + str(Quantity)+ " " +str(Sides) + " sided dice.")
+	if Quantity > 100:
+		print("WHAAA! I can't roll that many dice, you do it!")
+		await client.say("WHAAA! I can't roll that many dice, you do it!")
+		return
+
+	#Actually roll the dice
+	Total = 0
+	TotalCrits = 0
+	i = 0
+	while i < Quantity:
+		global Canceling
+		Roll = random.randint(1,Sides)
+		print("Rolled " + str(Roll) + ".")
+		if Roll == Sides:
+			TotalCrits = TotalCrits + 1
+			print("Crit!")
+		Total += Roll
+		i = i + 1
+
+	#Say the result
+	print("Total is " + str(Total) + " with " + str(TotalCrits) + " crits!")
+	await client.say(str(Total) + " with " + str(TotalCrits) + " crits!")
+	if Quantity == 1 and Total == Sides:
+		await client.say(CritLines[random.randint(0, len(CritLines)-1 )])
+	if Quantity == 1 and Total == 1:
+		await client.say(CritFailLines[random.randint(0, len(CritFailLines)-1 )])
+	if Total == 69:
+		await client.say("Nice.")
     
 @client.command(pass_context=True)
 async def headpat(ctx):
