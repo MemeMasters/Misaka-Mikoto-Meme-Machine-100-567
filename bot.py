@@ -3,6 +3,8 @@ from discord.ext.commands import bot
 from discord.ext import commands
 import random
 
+#sixxx
+
 Client = discord.Client()
 bot_prefix= "!"
 client = commands.Bot(command_prefix=bot_prefix)
