@@ -7,6 +7,8 @@ Client = discord.Client()
 bot_prefix= "!"
 client = commands.Bot(command_prefix=bot_prefix)
 
+#!WEEB
+
 CritLines = ["Headshot!", "Critical Hit!", "Oof", "Booyeah!", "Crit!"]
 
 @client.event
