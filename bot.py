@@ -120,7 +120,7 @@ async def TellMeAMeme():
     
 @client.command(pass_context=True)
 async def headpat(ctx):
-	await client.say("Bye!")
+	await client.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
 	client.logout()
 	raise SystemExit
 
