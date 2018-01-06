@@ -1,4 +1,4 @@
-import discord
+﻿import discord
 from discord.ext.commands import bot
 from discord.ext import commands
 import random
@@ -7,16 +7,23 @@ Client = discord.Client()
 bot_prefix= "!"
 client = commands.Bot(command_prefix=bot_prefix)
 Token = "Mzk4NjQ0MzY1NTU3NDk3ODU2.DTBjlw.iemPtBTrA1xJiiWiAC72ZqPiV5E"
+MainChannelID = "367903165993189379"
+MainChannel = client.get_channel(MainChannelID)
 
 CritLines = ["Headshot!", "Critical Hit!", "Booyeah!", "Crit!", "Finish him!", "Get pwn'd!"]
 CritFailLines = ["Oof", "Fatality!", "Ouch, ooch, oof your bones!", "That'll hurt in the morning..."]
 Roll1D1Lines = ["...What did you think would happen?", "...Why?", "Are you ok?",  "Do you need a doctor?", "What else did you think it would be?"]
+MemeLines = ["You.", "I'm running out of memes...", "This entire project.", "Ay, aren't you a funny guy.", "<Insert something cringy here>","tElL mE a mEmE!1!111!!1!!!!one!111!11", "Are you feeling it now mr. crabs?", "1v1 me on rust, howbou dah?"]
+StartupLines = ["*Yawn* Hello friends!", "おはようございます!", "おはよう、お父さん", "Ohayō, otōsan!", "Alright, who's ready to die?", "Greetings humans.", "My body is Reggie."]
+ShutdownLines = ["Bye!", "Farewell comrades!", "さようなら、お父さん!", "Misaka doesn't wish to leave."]
 
 @client.event
 async def on_ready():
-    print("Hello Nerds")
-    print("Name: {}".format(client.user.name))
-    print("ID: {}".format(client.user.id))
+	print("Hello Nerds")
+	print("Name: {}".format(client.user.name))
+	print("ID: {}".format(client.user.id))
+	MainChannel = client.get_channel(MainChannelID)
+	await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
 
 @client.command(pass_context=True)
 async def ping(ctx):
@@ -102,6 +109,14 @@ async def roll(QuantitySides: str):
 		await client.say("Nice.")
 	if Quantity == 1 and Sides == 1:
 		await client.say(Roll1D1Lines[random.randint(0, len(Roll1D1Lines)-1 )])
+	if Total == 7 or Total == 77 or Total == 777 or Total == 7777:
+		await client.say("Seben is my FABORIT number! But my faborit FABORIT number is seben BILLION!")
+	if Quantity == 9 and Sides == 11:
+		await client.say("Bush did it!")
+
+@client.command()
+async def TellMeAMeme():
+	await client.say(MemeLines[random.randint(0, len(MemeLines)-1 )])
     
 @client.command(pass_context=True)
 async def headpat(ctx):
