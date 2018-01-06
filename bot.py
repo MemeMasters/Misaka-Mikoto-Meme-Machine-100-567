@@ -231,11 +231,12 @@ async def roll(QuantitySides: str):
 	#Actually roll the dice
 	print("Rolling " + str(Quantity)+ " " +str(Sides) + " sided dice.")
 	Total = 0
+	Rolls = []
 	TotalCrits = 0
 	i = 0
 	while i < Quantity:
-		global Canceling
 		Roll = random.randint(1,Sides)
+		Rolls.append(Roll)
 		print("Rolled " + str(Roll) + ".")
 		if Roll == Sides:
 			TotalCrits = TotalCrits + 1
@@ -258,6 +259,7 @@ async def roll(QuantitySides: str):
 		await client.say("Seben is my FABORIT number! But my faborit FABORIT number is seben BILLION!")
 	if Quantity == 9 and Sides == 11:
 		await client.say("Bush did it!")
+	return [Total, Rolls, TotalCrits]
 
 @client.command()
 async def TellMeAMeme():
