@@ -29,6 +29,14 @@ async def on_ready():
 async def ping(ctx):
     await client.say("Pong!")
 
+@client.command(pass_context=True) #coinflip stuff
+async def coinflip(ctx):
+        HeadTails = random.randint(1,2)
+        if HeadTails == 1:
+                await client.say("Tails, but you're dead either way")
+        else:
+                await client.say("Heads, but you're dead either way")
+
 @client.command(pass_context=True)
 async def weeb(ctx):
     await client.say("He's not a weeb!")
