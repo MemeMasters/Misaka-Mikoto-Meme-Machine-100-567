@@ -53,62 +53,46 @@ async def weeb(ctx):
     #)
 
 @client.command()#This is a clone of the !roll command, except it has to somehow roll 6 sets of 3d6 or 4d6 take out the lowest and then do stuff with it
-async def stats(QuantityDSides: str, Modifier: str):#Example: '!stats 4d6 -low' or '!stats 2d6 +6' or just '!stats' for a regular run
-	
-	#Identify Devider
-	Devider = 0
-	i = 0
-	while i < len(QuantityDSides):
-		letter = QuantityDSides[i]
-		if letter == "D" or letter == "d":
-			Devider = i
-		i = i + 1
-
-	#Check formatting and tell you to screw off
-	Invalid = False
-	if Devider == 0:
-		Invalid = True
-	Quantity = 0
-	Sides = 0
-
-	try: #"try:" tries to do the given action and if there's a non-lethal error run the code in "except ValueError" instead of crying in the output. 
-		Quantity = int(QuantityDSides[:Devider])		#Identify Quantity
-	except ValueError:
-		Invalid = True
-
-	try: #so right now it's testing if Quantity and Sides are actually numbers and not people trying to hurt senpai.
-		Sides    = int(QuantityDSides[Devider+1:])	#Identify Sides
-	except ValueError:
-		Invalid = True
-
-	if Invalid == True:
-		await client.say("'{}'? That's not how you roll a dice, silly! Use '!roll xDy'. \n x = Number of dice, \n y = Dice sides. \n ie: '!roll 2D6'.".format(QuantityDSides))
-		return
-
-	#Check dice quantity
-	if Quantity > 100:
-		print("Too many dice detected. WTF?")
-		await client.say("WHAAA! I can't roll that many dice, you do it!")
-		return
-
-	#Actually roll the dice
-	print("Rolling " + str(Quantity)+ " " +str(Sides) + " sided dice.")
-	Total = 0
-	TotalCrits = 0
-	i = 0
-	while i < Quantity:
-		global Canceling
-		Roll = random.randint(1,Sides)
-		print("Rolled " + str(Roll) + ".")
-		if Roll == Sides:
-			TotalCrits = TotalCrits + 1
-			print("Crit!")
-		Total += Roll
-		i = i + 1
-
-	#Say the result
-	print("Total is " + str(Total) + " with " + str(TotalCrits) + " crits!")
-	await client.say(str(Total) + " with " + str(TotalCrits) + " crits!")
+async def stats():#Example: '!stats 4d6 -low' or '!stats 2d6 +6' or just '!stats' for a regular run
+        #rolling stuff all over the place
+        print("Rolling 6 sets of 3 6-sided dice.")
+        StatRound = 0
+        Set = 6
+        Strength = 0
+        Intelligence = 0
+        Wisdom = 0
+        Dexterity = 0
+        Constitution = 0
+        Charisma = 0
+        while StatRound < Set:
+                Total = 0
+                Quantity = 3
+                i = 0
+                while i < Quantity:
+                        Roll = random.randint(1,6)
+                        print("Rolled " + str(Roll) + ".")
+                        Total += Roll
+                        i = i + 1
+                        if i == 3:
+                                if Strength == 0:
+                                        Strength = Total
+                                else:
+                                        if Intelligence == 0:
+                                                Intelligence = Total
+                                        else:
+                                                if Wisdom == 0:
+                                                        Wisdom = Total
+                                                else:
+                                                        if Dexterity == 0:
+                                                                Dexterity = Total
+                                                        else:
+                                                                if Constitution == 0:
+                                                                        Constitution = Total
+                                                                else:
+                                                                        if Charisma == 0:
+                                                                                Charisma = Total
+                                StatRound = StatRound + 1
+        await client.say("**```prolog" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "```**")
 
 @client.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 async def roll(QuantityDSides: str):
