@@ -52,8 +52,8 @@ async def weeb(ctx):
        # "Charisma:     " + str(random.randint(1,6)*3) + "```**"
     #)
 
-@client.command()#This is a clone of the !roll command, except it has to somehow roll 6 sets of 3d6 or 4d6 take out the lowest and then do stuff with it
-async def stats():#Example: '!stats 4d6 -low' or '!stats 2d6 +6' or just '!stats' for a regular run
+@client.command()
+async def stats(Type: int=3):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
         #rolling stuff all over the place
         print("Rolling 6 sets of 3 6-sided dice.")
         StatRound = 0
@@ -66,14 +66,14 @@ async def stats():#Example: '!stats 4d6 -low' or '!stats 2d6 +6' or just '!stats
         Charisma = 0
         while StatRound < Set:
                 Total = 0
-                Quantity = 3
+                Quantity = Type
                 i = 0
                 while i < Quantity:
                         Roll = random.randint(1,6)
                         print("Rolled " + str(Roll) + ".")
                         Total += Roll
                         i = i + 1
-                        if i == 3:
+                        if i == Type:
                                 if Strength == 0:
                                         Strength = Total
                                 else:
