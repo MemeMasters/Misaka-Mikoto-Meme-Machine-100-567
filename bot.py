@@ -53,46 +53,80 @@ async def weeb(ctx):
     #)
 
 @client.command()
-async def stats(Type: int=3):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
-        #rolling stuff all over the place
-        print("Rolling 6 sets of 3 6-sided dice.")
+async def stats(Quantitystr: str=3, Setstr: str=7):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
+        Invalid = False
+        try:
+                Quantity = int(Quantitystr)
+        except ValueError:
+                Invalid = True
+        try:
+                Set = int(Setstr)
+        except ValueError:
+                Invalid = True
+        if Invalid == True:
+                await client.say("...I have no idea what you meant by that. \n Usage: !stats (Number of dice per stat) (Number of stats) \n (If you use more than three dice per stat, only the top 3 will be used.)")
+                return
+        
+        if Quantity >100:
+                await client.say("WHAAA! I can't roll that many dice, you do it!")
+                return
+
+        if Set >10:
+                await client.say("I'm not gonna roll that many stats, do it yourself!")
+                return#rolling stuff all over the place
+        print("Rolling " + str(Set) + " sets of " + str(Quantity) + " 6-sided dice.")
         StatRound = 0
-        Set = 6
         Strength = 0
         Intelligence = 0
         Wisdom = 0
         Dexterity = 0
         Constitution = 0
         Charisma = 0
+        Comeliness = 0
         while StatRound < Set:
                 Total = 0
-                Quantity = Type
                 i = 0
+                Numbers = [0,0,0]
                 while i < Quantity:
                         Roll = random.randint(1,6)
+                        Numbers.extend([Roll])
                         print("Rolled " + str(Roll) + ".")
-                        Total += Roll
                         i = i + 1
-                        if i == Type:
+                        if i == Quantity:
+                                x = 0
+                                while x < 3:
+                                        Total += max(Numbers)
+                                        Numbers.remove(max(Numbers))
+                                        x = x + 1
                                 if Strength == 0:
                                         Strength = Total
+                                        print("Strength = " + str(Strength))
                                 else:
                                         if Intelligence == 0:
                                                 Intelligence = Total
+                                                print("Strength = " + str(Strength))
                                         else:
                                                 if Wisdom == 0:
                                                         Wisdom = Total
+                                                        print("Intelligence = " + str(Intelligence))
                                                 else:
                                                         if Dexterity == 0:
                                                                 Dexterity = Total
+                                                                print("Dexterity = " + str(Dexterity))
                                                         else:
                                                                 if Constitution == 0:
                                                                         Constitution = Total
+                                                                        print("Constitution = " + str(Constitution))
                                                                 else:
                                                                         if Charisma == 0:
                                                                                 Charisma = Total
+                                                                                print("Charisma = " + str(Charisma))
+                                                                        else:
+                                                                                if Comeliness == 0:
+                                                                                        Comeliness = Total
+                                                                                        print("Comeliness = " + str(Comeliness))
                                 StatRound = StatRound + 1
-        await client.say("**```prolog" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "```**")
+        await client.say("**```prolog" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "\n" + "Comeliness    " + str(Comeliness) + "```**")
 
 @client.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 async def roll(QuantityDSides: str):
