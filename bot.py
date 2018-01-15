@@ -16,6 +16,7 @@ Roll1D1Lines = ["...What did you think would happen?", "...Why?", "Are you ok?",
 MemeLines = ["You.", "I'm running out of memes...", "This entire project.", "Ay, aren't you a funny guy.", "<Insert something cringy here>","tElL mE a mEmE!1!111!!1!!!!one!111!11", "Are you feeling it now mr. crabs?", "1v1 me on rust, howbou dah?"]
 StartupLines = ["*Yawn* Hello friends!", "おはようございます!", "おはよう、お父さん", "Ohayō, otōsan!", "Alright, who's ready to die?", "Greetings humans.", "My body is Reggie."]
 ShutdownLines = ["Bye!", "Farewell comrades!", "さようなら、お父さん!", "Misaka doesn't wish to leave."]
+Character = 'test.txt'
 
 @client.event
 async def on_ready():
@@ -24,6 +25,19 @@ async def on_ready():
 	print("ID: {}".format(client.user.id))
 	MainChannel = client.get_channel(MainChannelID)
 	await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
+
+#@client.event
+#async def on_message(message):
+#        if message.content == "weed" or message.content == "Weed":
+#                await client.send_message(message.channel, "I hear that's how people get magic powers or something.")
+
+@client.command(pass_context=True)
+async def character(ctx):
+        file = open(Character, 'r')
+        message = file.read()
+        print(message)
+        await client.say(message)
+        file.close
 
 @client.command(pass_context=True)
 async def ping(ctx):
