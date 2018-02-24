@@ -6,7 +6,8 @@ import random
 Client = discord.Client()
 bot_prefix= "!"
 client = commands.Bot(command_prefix=bot_prefix)
-Token = "Mzk4NjQ0MzY1NTU3NDk3ODU2.DTBjlw.iemPtBTrA1xJiiWiAC72ZqPiV5E"
+Token = "NDE2ODgzODI1NDQ1MDQ0MjM2.DXK9iA.2talGeNUbV5MSrLsrZ8QWr-UD4U"
+#Token = "Mzk4NjQ0MzY1NTU3NDk3ODU2.DTBjlw.iemPtBTrA1xJiiWiAC72ZqPiV5E"
 MainChannelID = "367903165993189379"
 MainChannel = client.get_channel(MainChannelID)
 
@@ -23,8 +24,8 @@ async def on_ready():
 	print("Hello Nerds")
 	print("Name: {}".format(client.user.name))
 	print("ID: {}".format(client.user.id))
-	MainChannel = client.get_channel(MainChannelID)
-	await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
+	#MainChannel = client.get_channel(MainChannelID)
+	#await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
 
 #@client.event
 #async def on_message(message):
@@ -38,10 +39,22 @@ async def character(ctx):
         print(message)
         await client.say(message)
         file.close
+        
+@client.command(pass_context=True)
+async def newcharacter(ctx, name):
+        import os
+        if os.path.isfile(name + ".txt"):
+                await client.say("Ayy lmao too many of these people to make another!")
+        else:
+                char = open(name + ".txt", 'w+')
+                char.write(ctx.message.author.id + "\n" + name)
+                print("done")
+                char.close()
 
 @client.command(pass_context=True)
 async def ping(ctx):
-    await client.say("Pong!")
+        print (ctx.message.author.id) 
+        await client.say("Pong!")
 
 @client.command(pass_context=True) #coinflip stuff
 async def coinflip(ctx):
@@ -140,7 +153,7 @@ async def stats(Quantitystr: str=3, Setstr: str=7):#currently the default is 3, 
                                                                                         Comeliness = Total
                                                                                         print("Comeliness = " + str(Comeliness))
                                 StatRound = StatRound + 1
-        await client.say("**```prolog" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "\n" + "Comeliness    " + str(Comeliness) + "```**")
+        await client.say("**```css" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "\n" + "Comeliness    " + str(Comeliness) + "```**")
 
 @client.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 async def roll(QuantityDSides: str):
