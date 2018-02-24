@@ -2,6 +2,7 @@
 from discord.ext.commands import bot
 from discord.ext import commands
 import random
+import os
 
 Client = discord.Client()
 bot_prefix= "!"
@@ -22,10 +23,10 @@ Character = 'test.txt'
 
 @client.event
 async def on_ready():
-	print("Hello Nerds")
-	print("Name: {}".format(client.user.name))
-	print("ID: {}".format(client.user.id))
-	#MainChannel = client.get_channel(MainChannelID)
+    print("Hello Nerds")
+    print("Name: {}".format(client.user.name))
+    print("ID: {}".format(client.user.id))
+    #MainChannel = client.get_channel(MainChannelID)
 	#await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
 
 #@client.event
@@ -43,9 +44,8 @@ async def character(ctx):
         
 @client.command(pass_context=True)
 async def newcharacter(ctx, name):
-        import os
         if os.path.isfile(name + ".txt"):
-                await client.say("Ayy lmao too many of these people to make another!")
+                await client.say("Ayy lmao this thing's already a thing!")
         else:
                 char = open(name + ".txt", 'w+')
                 char.write(ctx.message.author.id + "\n" + name)
