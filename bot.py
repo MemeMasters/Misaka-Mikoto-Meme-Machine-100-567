@@ -6,8 +6,9 @@ import random
 Client = discord.Client()
 bot_prefix= "!"
 client = commands.Bot(command_prefix=bot_prefix)
-Token = "NDE2ODgzODI1NDQ1MDQ0MjM2.DXK9iA.2talGeNUbV5MSrLsrZ8QWr-UD4U"
-#Token = "Mzk4NjQ0MzY1NTU3NDk3ODU2.DTBjlw.iemPtBTrA1xJiiWiAC72ZqPiV5E"
+d_token_file = open("Discord Token.txt", "r")
+Token = d_token_file.read()
+d_token_file.close()
 MainChannelID = "367903165993189379"
 MainChannel = client.get_channel(MainChannelID)
 
