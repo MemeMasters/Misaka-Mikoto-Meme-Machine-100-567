@@ -35,26 +35,47 @@ async def on_ready():
 #                await client.send_message(message.channel, "I hear that's how people get magic powers or something.")
 
 @client.command(pass_context=True)
-async def character(ctx):
-        file = open(Character, 'r')
+async def char(ctx,):
+    if os.path.isfile(ctx.message.author.id + ".txt"):
+        file = open(ctx.message.author.id + ".txt", 'r+')
         message = file.read()
         print(message)
         await client.say(message)
         file.close
-        
+
 @client.command(pass_context=True)
-async def newcharacter(ctx, name):
-        if os.path.isfile(name + ".txt"):
-                await client.say("Ayy lmao this thing's already a thing!")
-        else:
-                char = open(name + ".txt", 'w+')
-                char.write(ctx.message.author.id + "\n" + name)
-                print("done")
-                char.close()
+async def bored(ctx):
+    if ctx.message.author.id == "287697603607658496":
+        await client.say("Play Magic with someone!")
+    else:
+        print(ctx.message.author.id + " broke a rule or something")
+
+
+
+@client.command(pass_context=True)
+async def newchar(ctx, name):
+    if os.path.isfile(ctx.message.author.id + ".txt"):
+        await client.say("Ayy lmao you already got a character!")
+    else:
+        char = open(ctx.message.author.id + ".txt", 'w+')
+        char.write(name)
+        print("done")
+        char.close()
+        await client.say("And thus " + name + " was born")
+
+@client.command(pass_context=True)
+async def delchar(ctx,):
+    if os.path.isfile(ctx.message.author.id + ".txt"):
+        file = open(ctx.message.author.id + ".txt", 'r+')
+        await client.say("Gonna delet " + file.read() + ".")
+        file.close()
+        os.remove(ctx.message.author.id + ".txt")
+    else:
+        await client.say("Ain't got no character you deadbeat!")
 
 @client.command(pass_context=True)
 async def ping(ctx):
-        print (ctx.message.author.id) 
+        print (ctx.message.author.id + " pinged") 
         await client.say("Pong!")
 
 @client.command(pass_context=True) #coinflip stuff
