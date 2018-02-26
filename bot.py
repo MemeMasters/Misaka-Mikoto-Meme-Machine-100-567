@@ -15,7 +15,7 @@ MainChannel = client.get_channel(MainChannelID)
 
 CritLines = ["Headshot!", "Critical Hit!", "Booyeah!", "Crit!", "Finish him!", "Get pwn'd!"]
 CritFailLines = ["Oof", "Fatality!", "Ouch, ooch, oof your bones!", "That'll hurt in the morning..."]
-Roll1D1Lines = ["...What did you think would happen?", "...Why?", "Are you ok?",  "Do you need a doctor?", "What else did you think it would be?"]
+Roll1D1Lines = ["...What did you think would happen?", "...Why?", "Are you ok?",  "Do you need a doctor?", "What else did you think it would do?"]
 MemeLines = ["You.", "I'm running out of memes...", "This entire project.", "Ay, aren't you a funny guy.", "<Insert something cringy here>","tElL mE a mEmE!1!111!!1!!!!one!111!11", "Are you feeling it now mr. crabs?", "1v1 me on rust, howbou dah?"]
 StartupLines = ["*Yawn* Hello friends!", "おはようございます!", "おはよう、お父さん", "Ohayō, otōsan!", "Alright, who's ready to die?", "Greetings humans.", "My body is Reggie."]
 ShutdownLines = ["Bye!", "Farewell comrades!", "さようなら、お父さん!", "Misaka doesn't wish to leave."]
@@ -234,7 +234,7 @@ async def roll(QuantityDSides: str):
 
 	#Say the result
 	print("Total is " + str(Total) + " with " + str(TotalCrits) + " crits!")
-	await client.say(str(Total) + " with " + str(TotalCrits) + " crits!")
+	await client.say(str(Total))# + " with " + str(TotalCrits) + " crits!")
 	if Quantity == 1 and Total == Sides and not Sides == 1:
 		await client.say(CritLines[random.randint(0, len(CritLines)-1 )])
 	if Quantity == 1 and Total == 1 and not Sides == 1:
@@ -262,13 +262,16 @@ async def booklist(ctx):
 
 @client.command()
 async def TellMeAMeme():
-	await client.say(MemeLines[random.randint(0, len(MemeLines)-1 )])
+    await client.say(MemeLines[random.randint(0, len(MemeLines)-1 )])
     
 @client.command(pass_context=True)
 async def headpat(ctx):
-	await client.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
-	client.logout()
-	raise SystemExit
+    if ctx.message.author.id == "287697603607658496":
+        await client.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
+        client.logout()
+        raise SystemExit
+    else:
+        await client.say(Roll1D1Lines[random.randint(0, len(Roll1D1Lines) - 1)])
 
 @client.command()#Why is this still here it's less productive than a squirrel in winter.
 async def push(remote: str, branch: str):
