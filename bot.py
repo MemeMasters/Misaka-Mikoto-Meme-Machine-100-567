@@ -10,8 +10,8 @@ client = commands.Bot(command_prefix=bot_prefix)
 d_token_file = open("Discord Token.txt", "r")
 Token = d_token_file.read()
 d_token_file.close()
-MainChannelID = "367903165993189379"
-MainChannel = client.get_channel(MainChannelID)
+#MainChannelID = "367903165993189379"
+#MainChannel = client.get_channel(MainChannelID)
 
 CritLines = ["Headshot!", "Critical Hit!", "Booyeah!", "Crit!", "Finish him!", "Get pwn'd!"]
 CritFailLines = ["Oof", "Fatality!", "Ouch, ooch, oof your bones!", "That'll hurt in the morning..."]
@@ -27,12 +27,19 @@ async def on_ready():
     print("Name: {}".format(client.user.name))
     print("ID: {}".format(client.user.id))
     #MainChannel = client.get_channel(MainChannelID)
-	#await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
+    #await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
 
 #@client.event
 #async def on_message(message):
 #        if message.content == "weed" or message.content == "Weed":
 #                await client.send_message(message.channel, "I hear that's how people get magic powers or something.")
+
+@client.command(pass_context=True)
+async def bored(ctx):
+    if ctx.message.author.id == "287697603607658496":
+        await client.say("Play Magic with someone!")
+    else:
+        print(ctx.message.author.id + " broke a rule or something")
 
 @client.command(pass_context=True)
 async def char(ctx,):
@@ -42,15 +49,6 @@ async def char(ctx,):
         print(message)
         await client.say(message)
         file.close
-
-@client.command(pass_context=True)
-async def bored(ctx):
-    if ctx.message.author.id == "287697603607658496":
-        await client.say("Play Magic with someone!")
-    else:
-        print(ctx.message.author.id + " broke a rule or something")
-
-
 
 @client.command(pass_context=True)
 async def newchar(ctx, name):
@@ -101,8 +99,8 @@ async def weeb(ctx):
        # "Charisma:     " + str(random.randint(1,6)*3) + "```**"
     #)
 
-@client.command()
-async def stats(Quantitystr: str=3, Setstr: str=7):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
+@client.command(pass_context=True)
+async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
         Invalid = False
         try:
                 Quantity = int(Quantitystr)
@@ -153,11 +151,11 @@ async def stats(Quantitystr: str=3, Setstr: str=7):#currently the default is 3, 
                                 else:
                                         if Intelligence == 0:
                                                 Intelligence = Total
-                                                print("Strength = " + str(Strength))
+                                                print("Intelligence = " + str(Strength))
                                         else:
                                                 if Wisdom == 0:
                                                         Wisdom = Total
-                                                        print("Intelligence = " + str(Intelligence))
+                                                        print("Wisdom = " + str(Intelligence))
                                                 else:
                                                         if Dexterity == 0:
                                                                 Dexterity = Total
@@ -176,12 +174,38 @@ async def stats(Quantitystr: str=3, Setstr: str=7):#currently the default is 3, 
                                                                                         print("Comeliness = " + str(Comeliness))
                                 StatRound = StatRound + 1
         await client.say("**```css" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "\n" + "Comeliness    " + str(Comeliness) + "```**")
+        if os.path.isfile(ctx.message.author.id + ".txt"):
+                file = open(ctx.message.author.id + ".txt", "r")
+                test = 0
+                with open(ctx.message.author.id + ".txt", "r") as v:
+                        characterlist = []
+                        thisline = v.read()
+                        characterlist.append(thisline)
+                        test = len(characterlist)
+                        print(characterlist)
+                if test < 2:
+                        file = open(ctx.message.author.id + ".txt", 'a+')
+                        print("\n" + str(Strength) + "\n" + str(Intelligence) + "\n" + str(Wisdom) + "\n" + str(Dexterity) + "\n" + str(Constitution) + "\n" + str(Charisma) + "\n" + str(Comeliness))
+                        file.write("\n" + str(Strength))
+                        file.write("\n" + str(Intelligence))
+                        file.write("\n" + str(Wisdom))
+                        file.write("\n" + str(Dexterity))
+                        file.write("\n" + str(Constitution))
+                        file.write("\n" + str(Charisma))
+                        file.write("\n" + str(Comeliness))
+                        file.close()
+                        await client.say("Stats saved to character.")
+                else:
+                        await client.say("Your character already has stats. Stats not overwritten")
+        else:
+                await client.say("No character detected. Stats not applied.")
+
 
 @client.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 async def roll(QuantityDSides: str):
 	
 	#Identify Devider
-        #You know it's spelled 'Divider,' right?
+    #You know it's spelled 'Divider,' right?
 	Devider = 0
 	i = 0
 	while i < len(QuantityDSides):
