@@ -3,6 +3,7 @@ from discord.ext.commands import bot
 from discord.ext import commands
 import random
 import os
+import json
 
 Client = discord.Client()
 bot_prefix= "!"
@@ -23,189 +24,210 @@ Character = 'test.txt'
 
 @client.event
 async def on_ready():
-    print("Hello Nerds")
-    print("Name: {}".format(client.user.name))
-    print("ID: {}".format(client.user.id))
-    #MainChannel = client.get_channel(MainChannelID)
-    #await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
+	print("Hello Nerds")
+	print("Name: {}".format(client.user.name))
+	print("ID: {}".format(client.user.id))
+	#MainChannel = client.get_channel(MainChannelID)
+	#await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
 
 #@client.event
 #async def on_message(message):
-#        if message.content == "weed" or message.content == "Weed":
-#                await client.send_message(message.channel, "I hear that's how people get magic powers or something.")
+#		if message.content == "weed" or message.content == "Weed":
+#				await client.send_message(message.channel, "I hear that's how people get magic powers or something.")
 
 @client.command(pass_context=True)
 async def bored(ctx):
-    if ctx.message.author.id == "287697603607658496":
-        await client.say("Play Magic with someone!")
-    else:
-        print(ctx.message.author.id + " broke a rule or something")
-
-@client.command(pass_context=True)
-async def char(ctx,):
-    if os.path.isfile(ctx.message.author.id + ".txt"):
-        file = open(ctx.message.author.id + ".txt", 'r+')
-        message = file.read()
-        print(message)
-        await client.say(message)
-        file.close
+	if ctx.message.author.id == "287697603607658496":
+		await client.say("Play Magic with someone!")
+	else:
+		print(ctx.message.author.id + " broke a rule or something")
 
 @client.command(pass_context=True)
 async def newchar(ctx, name):
-    if os.path.isfile(ctx.message.author.id + ".txt"):
-        await client.say("Ayy lmao you already got a character!")
-    else:
-        char = open(ctx.message.author.id + ".txt", 'w+')
-        char.write(name)
-        print("done")
-        char.close()
-        await client.say("And thus " + name + " was born")
+	if os.path.isfile(ctx.message.author.id + ".json"):
+		await client.say("Ayy lmao you already got a character!")
+	else:
+		charname = {'Name': name}
+		print(charname)
+		print(charname['Name'])
+		out_file = open(ctx.message.author.id + ".json", "w+")
+		json.dump(charname, out_file, indent=4)
+		out_file.close()
+		await client.say("And thus " + name + " was born")
+
+@client.command(pass_context=True)
+async def char(ctx):
+	if os.path.isfile(ctx.message.author.id + ".json"):
+		in_file = open(ctx.message.author.id + ".json", "r")
+		characterinfo = json.load(in_file)
+		in_file.close()
+		print(characterinfo)
+		if len(characterinfo) <2:
+			await client.say("**```prolog" + "\n" +
+			"Name:         " + characterinfo['Name'] +
+			  "```**")
+		else:
+			await client.say("**```css" + "\n" +
+			"Name:         " + characterinfo['Name'] + "\n" +
+			"Strength:     " + str(characterinfo['Strength']) + "\n" +
+			"Intelligence: " + str(characterinfo['Intelligence']) + "\n" +
+			"Wisdom:       " + str(characterinfo['Wisdom']) + "\n" +
+			"Dexterity:    " + str(characterinfo['Dexterity']) + "\n" +
+			"Constitution: " + str(characterinfo['Constitution']) + "\n" +
+			"Charisma:     " + str(characterinfo['Charisma']) + "```**"
+			)
+	else:
+		await client.say("You don't have a character.")
 
 @client.command(pass_context=True)
 async def delchar(ctx,):
-    if os.path.isfile(ctx.message.author.id + ".txt"):
-        file = open(ctx.message.author.id + ".txt", 'r+')
-        await client.say("Gonna delet " + file.read() + ".")
-        file.close()
-        os.remove(ctx.message.author.id + ".txt")
-    else:
-        await client.say("Ain't got no character you deadbeat!")
+	if os.path.isfile(ctx.message.author.id + ".json"):
+		file = open(ctx.message.author.id + ".json", 'r+')
+		await client.say("Gonna delet " + file.read() + ".")
+		file.close()
+		os.remove(ctx.message.author.id + ".json")
+	else:
+		await client.say("Ain't got no character you deadbeat!")
 
 @client.command(pass_context=True)
 async def ping(ctx):
-        print (ctx.message.author.id + " pinged") 
-        await client.say("Pong!")
+	print (ctx.message.author.id + " pinged") 
+	await client.say("Pong!")
 
 @client.command(pass_context=True) #coinflip stuff
 async def coinflip(ctx):
-        HeadTails = random.randint(1,2)
-        if HeadTails == 1:
-                await client.say("Tails, but you're dead either way")
-        else:
-                await client.say("Heads, but you're dead either way")
+	HeadTails = random.randint(1,2)
+	if HeadTails == 1:
+		await client.say("Tails, but you're dead either way")
+	else:
+		await client.say("Heads, but you're dead either way")
 
 @client.command(pass_context=True)
 async def weeb(ctx):
-    await client.say("He's not a weeb!")
+	await client.say("He's not a weeb!")
 
 #@client.command(pass_context=True)  yeah turns out this rolls multiples of 3 from 3 to 18, so it's not useful
 #async def stats(ctx):
-    #await client.say("**```prolog" + "\n" +
-       # "Strength:     " + str(random.randint(1,6)*3) + "\n" +
-       # "Intelligence: " + str(random.randint(1,6)*3) + "\n" +
-       # "Wisdom:       " + str(random.randint(1,6)*3) + "\n" +
-       # "Dexterity:    " + str(random.randint(1,6)*3) + "\n" +
-       # "Constitution: " + str(random.randint(1,6)*3) + "\n" +
-       # "Charisma:     " + str(random.randint(1,6)*3) + "```**"
-    #)
+	#await client.say("**```prolog" + "\n" +
+		#"Strength:     " + str(random.randint(1,6)*3) + "\n" +
+		#"Intelligence: " + str(random.randint(1,6)*3) + "\n" +
+		#"Wisdom:       " + str(random.randint(1,6)*3) + "\n" +
+		#"Dexterity:    " + str(random.randint(1,6)*3) + "\n" +
+		#"Constitution: " + str(random.randint(1,6)*3) + "\n" +
+		#"Charisma:     " + str(random.randint(1,6)*3) + "```**"
+		#)
 
 @client.command(pass_context=True)
 async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
-        Invalid = False
-        try:
-                Quantity = int(Quantitystr)
-        except ValueError:
-                Invalid = True
-        try:
-                Set = int(Setstr)
-        except ValueError:
-                Invalid = True
-        if Invalid == True:
-                await client.say("...I have no idea what you meant by that. \n Usage: !stats (Number of dice per stat) (Number of stats) \n (If you use more than three dice per stat, only the top 3 will be used.)")
-                return
-        
-        if Quantity >100:
-                await client.say("WHAAA! I can't roll that many dice, you do it!")
-                return
+		Invalid = False
+		try:
+				Quantity = int(Quantitystr)
+		except ValueError:
+				Invalid = True
+		try:
+				Set = int(Setstr)
+		except ValueError:
+				Invalid = True
+		if Invalid == True:
+				await client.say("...I have no idea what you meant by that. \n Usage: !stats (Number of dice per stat) (Number of stats) \n (If you use more than three dice per stat, only the top 3 will be used.)")
+				return
+		
+		if Quantity >100:
+				await client.say("WHAAA! I can't roll that many dice, you do it!")
+				return
 
-        if Set >10:
-                await client.say("I'm not gonna roll that many stats, do it yourself!")
-                return#rolling stuff all over the place
-        print("Rolling " + str(Set) + " sets of " + str(Quantity) + " 6-sided dice.")
-        StatRound = 0
-        Strength = 0
-        Intelligence = 0
-        Wisdom = 0
-        Dexterity = 0
-        Constitution = 0
-        Charisma = 0
-        Comeliness = 0
-        while StatRound < Set:
-                Total = 0
-                i = 0
-                Numbers = [0,0,0]
-                while i < Quantity:
-                        Roll = random.randint(1,6)
-                        Numbers.extend([Roll])
-                        print("Rolled " + str(Roll) + ".")
-                        i = i + 1
-                        if i == Quantity:
-                                x = 0
-                                while x < 3:
-                                        Total += max(Numbers)
-                                        Numbers.remove(max(Numbers))
-                                        x = x + 1
-                                if Strength == 0:
-                                        Strength = Total
-                                        print("Strength = " + str(Strength))
-                                else:
-                                        if Intelligence == 0:
-                                                Intelligence = Total
-                                                print("Intelligence = " + str(Strength))
-                                        else:
-                                                if Wisdom == 0:
-                                                        Wisdom = Total
-                                                        print("Wisdom = " + str(Intelligence))
-                                                else:
-                                                        if Dexterity == 0:
-                                                                Dexterity = Total
-                                                                print("Dexterity = " + str(Dexterity))
-                                                        else:
-                                                                if Constitution == 0:
-                                                                        Constitution = Total
-                                                                        print("Constitution = " + str(Constitution))
-                                                                else:
-                                                                        if Charisma == 0:
-                                                                                Charisma = Total
-                                                                                print("Charisma = " + str(Charisma))
-                                                                        else:
-                                                                                if Comeliness == 0:
-                                                                                        Comeliness = Total
-                                                                                        print("Comeliness = " + str(Comeliness))
-                                StatRound = StatRound + 1
-        await client.say("**```css" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "\n" + "Comeliness    " + str(Comeliness) + "```**")
-        if os.path.isfile(ctx.message.author.id + ".txt"):
-                file = open(ctx.message.author.id + ".txt", "r")
-                test = 0
-                with open(ctx.message.author.id + ".txt", "r") as v:
-                        characterlist = []
-                        thisline = v.read()
-                        characterlist.append(thisline)
-                        test = len(characterlist)
-                        print(characterlist)
-                if test < 2:
-                        file = open(ctx.message.author.id + ".txt", 'a+')
-                        print("\n" + str(Strength) + "\n" + str(Intelligence) + "\n" + str(Wisdom) + "\n" + str(Dexterity) + "\n" + str(Constitution) + "\n" + str(Charisma) + "\n" + str(Comeliness))
-                        file.write("\n" + str(Strength))
-                        file.write("\n" + str(Intelligence))
-                        file.write("\n" + str(Wisdom))
-                        file.write("\n" + str(Dexterity))
-                        file.write("\n" + str(Constitution))
-                        file.write("\n" + str(Charisma))
-                        file.write("\n" + str(Comeliness))
-                        file.close()
-                        await client.say("Stats saved to character.")
-                else:
-                        await client.say("Your character already has stats. Stats not overwritten")
-        else:
-                await client.say("No character detected. Stats not applied.")
+		if Set >10:
+				await client.say("I'm not gonna roll that many stats, do it yourself!")
+				return#rolling stuff all over the place
+		print("Rolling " + str(Set) + " sets of " + str(Quantity) + " 6-sided dice.")
+		StatRound = 0
+		Strength = 0
+		Intelligence = 0
+		Wisdom = 0
+		Dexterity = 0
+		Constitution = 0
+		Charisma = 0
+		Comeliness = 0
+		while StatRound < Set:
+				Total = 0
+				i = 0
+				Numbers = [0,0,0]
+				while i < Quantity:
+						Roll = random.randint(1,6)
+						Numbers.extend([Roll])
+						print("Rolled " + str(Roll) + ".")
+						i = i + 1
+						if i == Quantity:
+								x = 0
+								while x < 3:
+										Total += max(Numbers)
+										Numbers.remove(max(Numbers))
+										x = x + 1
+								if Strength == 0:
+										Strength = Total
+										print("Strength = " + str(Strength))
+								else:
+										if Intelligence == 0:
+												Intelligence = Total
+												print("Intelligence = " + str(Strength))
+										else:
+												if Wisdom == 0:
+														Wisdom = Total
+														print("Wisdom = " + str(Intelligence))
+												else:
+														if Dexterity == 0:
+																Dexterity = Total
+																print("Dexterity = " + str(Dexterity))
+														else:
+																if Constitution == 0:
+																		Constitution = Total
+																		print("Constitution = " + str(Constitution))
+																else:
+																		if Charisma == 0:
+																				Charisma = Total
+																				print("Charisma = " + str(Charisma))
+																		else:
+																				if Comeliness == 0:
+																						Comeliness = Total
+																						print("Comeliness = " + str(Comeliness))
+								StatRound = StatRound + 1
+		await client.say("**```css" + "\n" + "Strength:     " + str(Strength) + "\n" + "Intelligence: " + str(Intelligence) + "\n" + "Wisdom:       " + str(Wisdom) + "\n" + "Dexterity:    " + str(Dexterity) + "\n" + "Constitution: " + str(Constitution) + "\n" + "Charisma:     " + str(Charisma) + "\n" + "Comeliness    " + str(Comeliness) + "```**")
+		if os.path.isfile(ctx.message.author.id + ".json"):
+				test = 0
+				in_file = open(ctx.message.author.id + ".json", "r")
+				characterinfo = json.load(in_file)
+				in_file.close()
+				test = len(characterinfo)
+				print("length " + str(test))
+				if test < 2:
+						in_file = open(ctx.message.author.id + ".json", "r")
+						characterinfo = json.load(in_file)
+						print("What's in the file already: " + str(characterinfo))
+						in_file.close()
+						characterinfo.update({
+							"Strength": Strength,
+							"Intelligence": Intelligence,
+							"Wisdom": Wisdom,
+							"Dexterity": Dexterity,
+							"Constitution": Constitution,
+							"Charisma": Charisma,
+							"Comeliness": Comeliness
+						})
+						print("What characterinfo has become: " + str(characterinfo))
+						out_file = open(ctx.message.author.id + ".json", "w")
+						json.dump(characterinfo, out_file, indent=4)
+						out_file.close()
+						await client.say("Stats saved to character.")
+				else:
+						await client.say("Your character already has stats. Stats not overwritten")
+		else:
+				await client.say("No character detected. Stats not applied.")
 
 
 @client.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 async def roll(QuantityDSides: str):
-	
 	#Identify Devider
-    #You know it's spelled 'Divider,' right?
+	#You know it's spelled 'Divider,' right?
 	Devider = 0
 	i = 0
 	while i < len(QuantityDSides):
@@ -274,31 +296,31 @@ async def roll(QuantityDSides: str):
       
 @client.command(pass_context=True) #You want the books? Well too bad here they are. 
 async def handbook(ctx):
-    await client.say("Here's the PDF: \n http://archmagev.com/1st_Ed/Rulebooks/TSR02010B%20-%20Player's%20Handbook%20(Revised%20Cover%20-%20Orange%20Spine).pdf")
+	await client.say("Here's the PDF: \n http://archmagev.com/1st_Ed/Rulebooks/TSR02010B%20-%20Player's%20Handbook%20(Revised%20Cover%20-%20Orange%20Spine).pdf")
 
 @client.command(pass_context=True)
 async def dmsguide(ctx):
-    await client.say("Here's the PDF: \n http://archmagev.com/1st_Ed/Rulebooks/TSR02011A%20-%20Dungeon%20Master's%20Guide%20(Original%20Cover).pdf \n No metagaming!")
+	await client.say("Here's the PDF: \n http://archmagev.com/1st_Ed/Rulebooks/TSR02011A%20-%20Dungeon%20Master's%20Guide%20(Original%20Cover).pdf \n No metagaming!")
 
 @client.command(pass_context=True)
 async def booklist(ctx):
-    await client.say("Here's the index: \n http://archmagev.com/1st_Ed/Rulebooks/ \n No metagaming!")
+	await client.say("Here's the index: \n http://archmagev.com/1st_Ed/Rulebooks/ \n No metagaming!")
 
 @client.command()
 async def TellMeAMeme():
-    await client.say(MemeLines[random.randint(0, len(MemeLines)-1 )])
+	await client.say(MemeLines[random.randint(0, len(MemeLines)-1 )])
     
 @client.command(pass_context=True)
 async def headpat(ctx):
-    if ctx.message.author.id == "287697603607658496":
-        await client.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
-        client.logout()
-        raise SystemExit
-    else:
-        await client.say(Roll1D1Lines[random.randint(0, len(Roll1D1Lines) - 1)])
+	if ctx.message.author.id == "287697603607658496":
+		await client.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
+		client.logout()
+		raise SystemExit
+	else:
+		await client.say(Roll1D1Lines[random.randint(0, len(Roll1D1Lines) - 1)])
 
 @client.command()#Why is this still here it's less productive than a squirrel in winter.
 async def push(remote: str, branch: str):
-    await client.say('Pushing to {} {}'.format(branch, remote))
+	await client.say('Pushing to {} {}'.format(branch, remote))
 
 client.run(Token)
