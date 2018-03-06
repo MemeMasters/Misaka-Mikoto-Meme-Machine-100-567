@@ -30,13 +30,9 @@ async def on_ready():
 	#MainChannel = client.get_channel(MainChannelID)
 	#await client.send_message(MainChannel, StartupLines[random.randint(0, len(StartupLines)-1 )])
 
-#@client.event
-#async def on_message(message):
-#		if message.content == "weed" or message.content == "Weed":
-#				await client.send_message(message.channel, "I hear that's how people get magic powers or something.")
-
 @client.command(pass_context=True)
 async def bored(ctx):
+	'''For people who are bored.'''
 	if ctx.message.author.id == "287697603607658496":
 		await client.say("Play Magic with someone!")
 	else:
@@ -44,6 +40,7 @@ async def bored(ctx):
 
 @client.command(pass_context=True)
 async def newchar(ctx, name):
+	"""This command creates a character unique to your Discord user id. Usage: !newchar [Name]"""
 	if os.path.isfile(ctx.message.author.id + ".json"):
 		await client.say("Ayy lmao you already got a character!")
 	else:
@@ -57,6 +54,7 @@ async def newchar(ctx, name):
 
 @client.command(pass_context=True)
 async def char(ctx):
+	'''Displays information about the character you made with !newchar.'''
 	if os.path.isfile(ctx.message.author.id + ".json"):
 		in_file = open(ctx.message.author.id + ".json", "r")
 		characterinfo = json.load(in_file)
@@ -81,21 +79,25 @@ async def char(ctx):
 
 @client.command(pass_context=True)
 async def delchar(ctx,):
+	'''Deletes your character (if you made one with !newchar.)'''
 	if os.path.isfile(ctx.message.author.id + ".json"):
-		file = open(ctx.message.author.id + ".json", 'r+')
-		await client.say("Gonna delet " + file.read() + ".")
-		file.close()
+		in_file = open(ctx.message.author.id + ".json", "r")
+		characterinfo = json.load(in_file)
+		in_file.close()
+		await client.say("Gonna delet " + characterinfo['Name'] + ".")
 		os.remove(ctx.message.author.id + ".json")
 	else:
 		await client.say("Ain't got no character you deadbeat!")
 
 @client.command(pass_context=True)
 async def ping(ctx):
+	'''Pings the bot and prints your id in the output.'''
 	print (ctx.message.author.id + " pinged") 
 	await client.say("Pong!")
 
 @client.command(pass_context=True) #coinflip stuff
 async def coinflip(ctx):
+	'''Flips a coin.'''
 	HeadTails = random.randint(1,2)
 	if HeadTails == 1:
 		await client.say("Tails, but you're dead either way")
@@ -104,21 +106,12 @@ async def coinflip(ctx):
 
 @client.command(pass_context=True)
 async def weeb(ctx):
+	'''Used to call me a weeb. There may be a few lines of code allowing me to 'keep track' of you, supposing you choose to do so.'''
 	await client.say("He's not a weeb!")
-
-#@client.command(pass_context=True)  yeah turns out this rolls multiples of 3 from 3 to 18, so it's not useful
-#async def stats(ctx):
-	#await client.say("**```prolog" + "\n" +
-		#"Strength:     " + str(random.randint(1,6)*3) + "\n" +
-		#"Intelligence: " + str(random.randint(1,6)*3) + "\n" +
-		#"Wisdom:       " + str(random.randint(1,6)*3) + "\n" +
-		#"Dexterity:    " + str(random.randint(1,6)*3) + "\n" +
-		#"Constitution: " + str(random.randint(1,6)*3) + "\n" +
-		#"Charisma:     " + str(random.randint(1,6)*3) + "```**"
-		#)
 
 @client.command(pass_context=True)
 async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
+		'''Rolls 7 sets of 3d6, with mild flexibility. Increasing the number of dice per stat will not create huge numbers, as the stats are generated from the highest three numbers rolled per set. Usage: !stats [x] [y], where x is the number of dice per stat and y is the number of stats. If you have made a character with !newchar, it will apply the stats rolled without confirmation unless your character already has stats.'''
 		Invalid = False
 		try:
 				Quantity = int(Quantitystr)
@@ -198,11 +191,9 @@ async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default i
 				characterinfo = json.load(in_file)
 				in_file.close()
 				test = len(characterinfo)
-				print("length " + str(test))
 				if test < 2:
 						in_file = open(ctx.message.author.id + ".json", "r")
 						characterinfo = json.load(in_file)
-						print("What's in the file already: " + str(characterinfo))
 						in_file.close()
 						characterinfo.update({
 							"Strength": Strength,
@@ -213,7 +204,6 @@ async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default i
 							"Charisma": Charisma,
 							"Comeliness": Comeliness
 						})
-						print("What characterinfo has become: " + str(characterinfo))
 						out_file = open(ctx.message.author.id + ".json", "w")
 						json.dump(characterinfo, out_file, indent=4)
 						out_file.close()
@@ -226,6 +216,7 @@ async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default i
 
 @client.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 async def roll(QuantityDSides: str):
+	'''Rolls X dice with Y sides. Usage: !roll XdY'''
 	#Identify Devider
 	#You know it's spelled 'Divider,' right?
 	Devider = 0
@@ -294,33 +285,34 @@ async def roll(QuantityDSides: str):
 	if Quantity == 9 and Sides == 11:
 		await client.say("Bush did it!")
       
-@client.command(pass_context=True) #You want the books? Well too bad here they are. 
+@client.command(pass_context=True)
 async def handbook(ctx):
+	'''Displays a link to the Player's Handbook PDF.'''
 	await client.say("Here's the PDF: \n http://archmagev.com/1st_Ed/Rulebooks/TSR02010B%20-%20Player's%20Handbook%20(Revised%20Cover%20-%20Orange%20Spine).pdf")
 
 @client.command(pass_context=True)
 async def dmsguide(ctx):
+	'''Displays a link to the Dungeon Master's Guide PDF.'''
 	await client.say("Here's the PDF: \n http://archmagev.com/1st_Ed/Rulebooks/TSR02011A%20-%20Dungeon%20Master's%20Guide%20(Original%20Cover).pdf \n No metagaming!")
 
 @client.command(pass_context=True)
 async def booklist(ctx):
+	'''Displays a list of the 1st edition books online.'''
 	await client.say("Here's the index: \n http://archmagev.com/1st_Ed/Rulebooks/ \n No metagaming!")
 
 @client.command()
 async def TellMeAMeme():
+	'''Spits out something unfunny.'''
 	await client.say(MemeLines[random.randint(0, len(MemeLines)-1 )])
     
 @client.command(pass_context=True)
 async def headpat(ctx):
+	'''Usage: don't.'''
 	if ctx.message.author.id == "287697603607658496":
 		await client.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
 		client.logout()
 		raise SystemExit
 	else:
 		await client.say(Roll1D1Lines[random.randint(0, len(Roll1D1Lines) - 1)])
-
-@client.command()#Why is this still here it's less productive than a squirrel in winter.
-async def push(remote: str, branch: str):
-	await client.say('Pushing to {} {}'.format(branch, remote))
 
 client.run(Token)
