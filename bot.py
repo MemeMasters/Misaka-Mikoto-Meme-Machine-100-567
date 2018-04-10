@@ -72,7 +72,8 @@ async def char(ctx):
 			"Wisdom:       " + str(characterinfo['Wisdom']) + "\n" +
 			"Dexterity:    " + str(characterinfo['Dexterity']) + "\n" +
 			"Constitution: " + str(characterinfo['Constitution']) + "\n" +
-			"Charisma:     " + str(characterinfo['Charisma']) + "```**"
+			"Charisma:     " + str(characterinfo['Charisma']) + "\n" +
+			"Comeliness:   " + str(characterinfo['Comeliness']) + "```**"
 			)
 	else:
 		await client.say("You don't have a character.")
