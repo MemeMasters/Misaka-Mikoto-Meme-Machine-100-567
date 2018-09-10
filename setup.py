@@ -9,8 +9,8 @@ with open('README.md', 'r') as fh:
 # All the pip dependencies required for installation.
 INSTALL_REQUIRES = [
       'discord.py[voice]',
-      'ruamel.yaml'
-      # TODO setup voice dependencies
+      'ruamel.yaml',
+      'youtube_dl'
 ]
 
 
