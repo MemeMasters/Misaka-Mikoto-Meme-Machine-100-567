@@ -8,10 +8,12 @@ import json
 from urllib import request
 import time
 
+from . import config
+
 #Client = discord.Client()
 bot_prefix= "!"
 bot = commands.Bot(command_prefix=bot_prefix)
-d_token_file = open("Discord Token.txt", "r")
+d_token_file = open(config.token_file, "r")
 Token = d_token_file.read()
 d_token_file.close()
 members = {}
