@@ -8,8 +8,10 @@ import json
 from urllib import request
 import time
 
+from dm_assist.config import config
+
 #Client = discord.Client()
-bot_prefix= "!"
+bot_prefix= config['prefix']
 bot = commands.Bot(command_prefix=bot_prefix)
 members = {}
 #MainChannelID = "367903165993189379"
@@ -21,15 +23,15 @@ if not discord.opus.is_loaded():
     # you should replace this with the location the
     # opus library is located in and with the proper filename.
     # note that on windows this DLL is automatically provided for you
-    discord.opus.load_opus('opus')
+    discord.opus.load_opus(config['voice']['opus'])
 
 
-CritLines = ["Headshot!", "Critical Hit!", "Booyeah!", "Crit!", "Finish him!", "Get pwn'd!"]
-CritFailLines = ["Oof", "Fatality!", "Ouch, ooch, oof your bones!", "That'll hurt in the morning..."]
-Roll1D1Lines = ["...What did you think would happen?", "...Why?", "Are you ok?",  "Do you need a doctor?", "What else did you think it would do?"]
-MemeLines = ["You.", "I'm running out of memes...", "This entire project.", "Ay, aren't you a funny guy.", "<Insert something cringy here>","tElL mE a mEmE!1!111!!1!!!!one!111!11", "Are you feeling it now mr. crabs?", "1v1 me on rust, howbou dah?"]
-StartupLines = ["*Yawn* Hello friends!", "おはようございます!", "おはよう、お父さん", "Ohayō, otōsan!", "Alright, who's ready to die?", "Greetings humans.", "My body is Reggie."]
-ShutdownLines = ["Bye!", "Farewell comrades!", "さようなら、お父さん!", "Misaka doesn't wish to leave."]
+CritLines = config['lines']['crits']
+CritFailLines = config['lines']['critFails']
+Roll1D1Lines = config['lines']['dumb']
+MemeLines = config['lines']['memes']
+StartupLines = config['lines']['startup']
+ShutdownLines = config['lines']['shutdown']
 Character = 'test.txt'
 
 class VoiceEntry:
@@ -130,10 +132,10 @@ class Music:
         """Joins a voice channel."""
         try:
             await self.create_voice_client(channel)
-        except discord.ClientException:
-            await self.bot.say('Already in a voice channel...')
         except discord.InvalidArgument:
             await self.bot.say('This is not a voice channel...')
+        except discord.ClientException:
+            await self.bot.say('Already in a voice channel...')
         else:
             await self.bot.say('Ready to play audio in ' + channel.name)
 
@@ -280,9 +282,12 @@ async def on_ready():
 
 class Roleplay:
 	"""This all creates a loose enviroment for playing Dungeons and Dragons on Discord"""
+	
+	@staticmethod
 	def DM():
 		dm = "287697603607658496"
 
+	@staticmethod
 	@bot.command(pass_context=True)
 	async def stats(ctx, Quantitystr: str=3, Setstr: str=7):#currently the default is 3, but optionally one can use another as so: "!stats 4" becomes 6 sets of 4d6
 			'''Rolls 7 sets of 3d6, with mild flexibility. 
@@ -390,7 +395,7 @@ class Roleplay:
 			else:
 					await bot.say("No character detected. Stats not applied.")
 
-
+	@staticmethod
 	@bot.command()#I changed it to Quantity'D'Sides because that's the data in the string and it makes sense okay
 	async def roll(QuantityDSides: str):
 		'''Rolls X dice with Y sides. Usage: !roll XdY'''
@@ -464,6 +469,7 @@ class Roleplay:
 		if Total == 420:
 		    await bot.say("(insert bad weed joke here)")
 
+	@staticmethod
 	@bot.command(pass_context=True)
 	async def newchar(ctx, name):
 		"""This command creates a character unique to your Discord user id. Usage: !newchar [Name]"""
@@ -478,6 +484,7 @@ class Roleplay:
 		    out_file.close()
 		    await bot.say("And thus " + name + " was born")
 
+	@staticmethod
 	@bot.command(pass_context=True)
 	async def level(ctx, level):
 		'''Tests if my .json file understanding is correct'''
@@ -501,6 +508,7 @@ class Roleplay:
 		else:
 			await bot.say("That's not a valid level")
 
+	@staticmethod
 	@bot.command(pass_context=True)
 	async def char(ctx):
 		'''Displays information about the character you made with !newchar.'''
@@ -527,6 +535,7 @@ class Roleplay:
 		else:
 		    await bot.say("You don't have a character.")
 
+	@staticmethod
 	@bot.command(pass_context=True)
 	async def delchar(ctx):
 		'''Deletes your character (if you made one with !newchar.)'''
@@ -539,6 +548,7 @@ class Roleplay:
 		else:
 		    await bot.say("Ain't got no character you deadbeat!")
 
+	@staticmethod
 	@bot.command(pass_context=True) #coinflip stuff
 	async def coinflip(ctx):
 		'''Flips a coin.'''

@@ -2,7 +2,6 @@
 
 from dm_assist import config, bot
 
-config.load()
 
 def create_token():
 	if config.config.get(config.TOKEN) is None:
