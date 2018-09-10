@@ -2,24 +2,18 @@
 
 from . import config
 
+config.load()
 
 def create_token():
-	config.token_file
-	if not os.path.exists(config.token_file):
-		try:
-			from secrets import token_hex
-		except ImportError:
-			from os import urandom
+	if config.config.get(config.TOKEN) is None:
 
-			def token_hex(nbytes=None):
-				return urandom(nbytes).hex()
+		print("No token exists!")
+		
+		token = input("Enter Token: ")
+		config.config[config.TOKEN] = token
 
-		print("No token file exists!")
-		print("generating token..")
+		config.save()
 
-		token_file = open(config.token_file, 'w')
-		token_file.write(token_hex(16))
-		token_file.close()
 
 create_token()
 
@@ -27,6 +21,6 @@ create_token()
 from . import bot
 
 
-def start():
+def serve():
 	print("Starting Bot..")
-	bot.bot.start(bot.Token)
+	bot.start()

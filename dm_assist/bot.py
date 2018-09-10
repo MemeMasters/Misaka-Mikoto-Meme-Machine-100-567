@@ -13,9 +13,7 @@ from . import config
 #Client = discord.Client()
 bot_prefix= "!"
 bot = commands.Bot(command_prefix=bot_prefix)
-d_token_file = open(config.token_file, "r")
-Token = d_token_file.read()
-d_token_file.close()
+Token = config.config[config.TOKEN]
 members = {}
 #MainChannelID = "367903165993189379"
 #MainChannel = client.get_channel(MainChannelID)
@@ -648,3 +646,6 @@ async def ping(ctx):
 #			await client.send_message(message.channel, "Good Kik")
 #		else:
 #			await client.send_message(message.channel, "What did you say wench?", tts=True)
+
+def start():
+	bot.run(Token)
