@@ -1,11 +1,11 @@
 import os
+from os.path import dirname
 
 from ruamel import yaml
 
-TOKEN = 'token'
-PREFIX = 'prefix'
+__config_file = os.path.join(dirname(dirname(__file__)), 'config.yaml')
+VERSION = 1
 
-__config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yaml')
 config = dict()
 
 def save():
@@ -42,6 +42,12 @@ def load():
     if config is None:
         load_defaults()
         return
+    
+    version = config.get('_conf', -1)
+    if version != VERSION:
+        migrate(version)
+        config['_conf'] = VERSION
+        save()
 
     def mergeDict(old: dict, new: dict) -> dict:
         """
@@ -67,7 +73,13 @@ def load():
 
 def get_defaults():
     defaults = dict()
-    defaults[PREFIX] = '!'
+
+    defaults['config'] = dict(
+        voice=dict(
+            opus='opus'
+        ),
+        prefix='!'
+    )
 
     defaults['lines'] = dict(
         crits=[u"Headshot!", u"Critical Hit!", u"Booyeah!", u"Crit!", u"Finish him!", u"Get pwn'd!"],
@@ -82,12 +94,16 @@ def get_defaults():
         shutdown=[u"Bye!", u"Farewell comrades!", u"さようなら、お父さん!", u"Misaka doesn't wish to leave."]
     )
 
-    defaults['voice'] = dict(
-        opus='opus'
-    )
 
     return defaults
 
+
+def migrate(version):
+    print("Migrating old config version from v{} to v{}..".format(version, VERSION))
+    if version is -1:
+        # There was no previous version, so there isn't anything we really can do
+        return
+    
 
 # Load the config on import
 load()
