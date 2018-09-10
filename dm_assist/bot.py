@@ -8,12 +8,11 @@ import json
 from urllib import request
 import time
 
-from . import config
+from dm_assist import config
 
 #Client = discord.Client()
 bot_prefix= "!"
 bot = commands.Bot(command_prefix=bot_prefix)
-Token = config.config[config.TOKEN]
 members = {}
 #MainChannelID = "367903165993189379"
 #MainChannel = client.get_channel(MainChannelID)
@@ -647,5 +646,5 @@ async def ping(ctx):
 #		else:
 #			await client.send_message(message.channel, "What did you say wench?", tts=True)
 
-def start():
-	bot.run(Token)
+def start(token):
+	bot.run(token)

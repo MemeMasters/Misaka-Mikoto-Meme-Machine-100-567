@@ -1,6 +1,6 @@
 ﻿import os
 
-from . import config
+from dm_assist import config, bot
 
 config.load()
 
@@ -15,12 +15,9 @@ def create_token():
 		config.save()
 
 
-create_token()
-
-
-from . import bot
-
-
 def serve():
+	create_token()
+
 	print("Starting Bot..")
-	bot.start()
+
+	bot.start(config.config[config.TOKEN])
