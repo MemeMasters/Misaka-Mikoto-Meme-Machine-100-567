@@ -1,0 +1,14 @@
+# python
+venv
+
+__pycache__
+
+*.egg-info
+
+# Visual Studio Code
+
+.vscode
+
+# bot
+
+config.yaml
