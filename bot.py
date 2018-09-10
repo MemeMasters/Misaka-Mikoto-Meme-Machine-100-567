@@ -464,6 +464,8 @@ class Roleplay:
 		    await bot.say("Seben is my FABORIT number! But my faborit FABORIT number is seben BILLION!")
 		if Quantity == 9 and Sides == 11:
 		    await bot.say("Bush did it!")
+		if Total == 420:
+		    await bot.say("(insert bad weed joke here)")
 
 	@bot.command(pass_context=True)
 	async def newchar(ctx, name):
