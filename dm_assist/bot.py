@@ -1,4 +1,4 @@
-import discord
+﻿import discord
 from discord.ext.commands import bot
 from discord.ext import commands
 import random
@@ -7,8 +7,6 @@ import os
 import json
 from urllib import request
 import time
-
-from dm_assist import config
 
 #Client = discord.Client()
 bot_prefix= "!"
@@ -463,6 +461,8 @@ class Roleplay:
 		    await bot.say("Seben is my FABORIT number! But my faborit FABORIT number is seben BILLION!")
 		if Quantity == 9 and Sides == 11:
 		    await bot.say("Bush did it!")
+		if Total == 420:
+		    await bot.say("(insert bad weed joke here)")
 
 	@bot.command(pass_context=True)
 	async def newchar(ctx, name):
