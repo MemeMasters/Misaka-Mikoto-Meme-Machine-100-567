@@ -5,7 +5,8 @@ import signal
 import discord
 from discord.ext import commands
 
-from dm_assist.config import config
+from dm_assist import config
+from dm_assist.config import config as conf
 
 from dm_assist import voice
 from dm_assist import misc
@@ -13,7 +14,7 @@ from dm_assist import roleplay
 
 
 Bot = commands.Bot(
-    command_prefix=commands.when_mentioned_or(config['config']['prefix']),
+    command_prefix=commands.when_mentioned_or(conf['config']['prefix']),
     description='An attempt to understand the confusing world around me.'
 )
 
@@ -30,13 +31,13 @@ if not discord.opus.is_loaded():
     # opus library is located in and with the proper filename.
     # note that on windows this DLL is automatically provided for you
     try:
-        discord.opus.load_opus(config['config']['voice']['opus'])
+        discord.opus.load_opus(conf['config']['voice']['opus'])
     except discord.opus.OpusError as e:
         print(e)
         print("Unable to load 'opus' library")
 
         print("voice cannot be used until opus is configured.")
-        print("Set the path to libopus.so in 'config / voice / opus' in config.yaml")
+        print("Set the path to libopus.so in 'conf / voice / opus' in conf.yaml")
 
 
 @Bot.event
@@ -50,12 +51,12 @@ async def on_ready():
 
 
 def create_token():
-    if config['config'].get('token') is None:
+    if conf['config'].get('token') is None:
 
         print("No token exists!")
         
         token = input("Enter Token: ")
-        config['config']['token'] = token
+        conf['config']['token'] = token
 
         config.save()
 
@@ -87,4 +88,4 @@ def serve():
     print("Starting Bot..")
     
     with sigint_shutdown():
-        Bot.run(config['config']['token'])
+        Bot.run(conf['config']['token'])
