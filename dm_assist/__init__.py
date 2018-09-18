@@ -41,7 +41,7 @@ if not discord.opus.is_loaded():
         print("Unable to load 'opus' library")
 
         print("voice cannot be used until opus is configured.")
-        print("Set the path to libopus.so in 'config / voice / opus' in config.yaml")
+        print("Set the path to libopus.so in 'conf / voice / opus' in conf.yaml")
 
 
 @Bot.event
