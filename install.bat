@@ -12,3 +12,6 @@ if EXIST %VENV% (
 )
 
 echo You can now start the bot with '.\%VENV%\python.exe dm_assist' or start.bat
+
+
+pause

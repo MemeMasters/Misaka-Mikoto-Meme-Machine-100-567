@@ -4,9 +4,6 @@ from discord.ext import commands
 
 from dm_assist.config import config
 
-dumbLines = config['lines']['dumb']
-StartupLines = config['lines']['startup']
-ShutdownLines = config['lines']['shutdown']
 
 class Misc:
 
@@ -80,14 +77,14 @@ class Misc:
         '''Usage: don't.'''
         if ctx.message.author.id == "287697603607658496":
             if derp == 1:
-                await self.bot.say(ShutdownLines[random.randint(0, len(ShutdownLines)-1 )])
+                await self.bot.say(config.lines.shutdown[random.randint(0, len(config.lines.shutdown)-1 )])
                 self.bot.logout()
                 self.bot.close()
                 raise SystemExit
             else:
-                await self.bot.say(dumbLines[random.randint(0, len(dumbLines) - 1)])
+                await self.bot.say(config.lines.dumb[random.randint(0, len(config.lines.dumb) - 1)])
         else:
-            await self.bot.say(dumbLines[random.randint(0, len(dumbLines) - 1)])
+            await self.bot.say(config.lines.dumb[random.randint(0, len(config.lines.dumb) - 1)])
 
 
     @commands.command(pass_context=True)

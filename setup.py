@@ -10,6 +10,8 @@ with open('README.md', 'r') as fh:
 INSTALL_REQUIRES = [
       'discord.py[voice]',
       'ruamel.yaml',
+      'sqlalchemy',
+      'alembic',
       'youtube_dl'
 ]
 
