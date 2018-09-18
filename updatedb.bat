@@ -1,9 +1,21 @@
 @echo off
 
-set VENV=venv\Scripts
+set VENV=..\..\venv\Scripts
+
+if "%~1"=="" (
+    echo Briefly describe the changes you have made:
+    set /P message=
+) else (
+    set message=%1
+)
+
+echo %message%
+
+cd dm_assist/sql
 
 if EXIST %VENV% (
-    %VENV%\python.exe -m dm_assist
+    %VENV%\activate.bat
+    alembic revision --autogenerate -m "%message%"
 ) else (
     echo No Virtualenv exists.  Create one in 'venv' then run 'install.bat'
     echo Use the command 'python virtualenv venv' to create a virtual environment
