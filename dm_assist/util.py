@@ -1,6 +1,10 @@
 import random
 
 
+def roll_die(sides: int) -> int:
+    return random.randint(1, sides)
+
+
 def roll(times: int, sides: int) -> (int, int, int):
     """
     Roll a n-sided die x number of times
@@ -16,7 +20,7 @@ def roll(times: int, sides: int) -> (int, int, int):
     crit_succ = 0
 
     for _ in range(times):
-        roll = random.randint(1, sides)
+        roll = roll_die(sides)
         total += roll
         if roll is sides:
             crit_succ += 1
@@ -28,6 +32,28 @@ def roll(times: int, sides: int) -> (int, int, int):
 
     return total, crit_succ, crit_fail
 
+
+def roll_top(times: int, top_rolls: int, sides: int) -> int:
+
+    rolls = list()
+
+    for _ in range(times):
+        roll = roll_die(sides)
+        rolls.append(roll)
+
+    top_x = [-1] * top_rolls
+
+    for roll in rolls:
+        # Check if the roll is greater than any of the current top rolls
+        for i, top in enumerate(top_x):
+            if roll > top:
+                # shift each top roll down
+                for ii in reversed(range(i, len(top_x) - 1)):
+                    top_x[ii + 1] = top_x[ii]
+                top_x[i] = roll
+                break
+    
+    return sum(top_x)
 
 class BadFormat(Exception):
 
