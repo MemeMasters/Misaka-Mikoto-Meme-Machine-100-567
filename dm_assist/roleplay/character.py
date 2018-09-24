@@ -75,12 +75,27 @@ class Character:
     async def rollstats(self, ctx, *args):
             '''Rolls 7 sets of 3d6, with mild flexibility. 
             Increasing the number of dice per stat will not create huge numbers, as the stats are generated from the highest three numbers rolled per set. 
-            Usage: !stats [x] [y], where x is the number of dice per stat and y is the number of stats. 
-            If you have made a character with !newchar, it will apply the stats rolled without confirmation unless your character already has stats.'''
+            Usage: !stats [character name] [x], where x is the number of dice per stat.. 
+            It will apply the stats rolled without confirmation!'''
             
             character = self.get_user_name(args)
-            if character == '':
+            if len(args) is 1:
                 character = None
+                dice = args[0]
+            elif len(args) is 0:
+                character = None
+                dice = '3'
+            else:
+                dice = args[-1]
+                character = self.get_user_name(args[:-1])
+
+            try:
+                dice = int(dice)
+                if dice < 3:
+                    raise ValueError
+            except ValueError:
+                await self.bot.say("{} is not a valid number!".format(args[0]))
+                return
 
             session = sql.sql.getSession()
 
@@ -89,21 +104,18 @@ class Character:
             except NoUserError:
                 return
 
-            Strength, _, _ = util.roll(3, 6)
-            Intelligence, _, _ = util.roll(3, 6)
-            Wisdom, _, _ = util.roll(3, 6)
-            Dexterity, _, _ = util.roll(3, 6)
-            Constitution, _, _ = util.roll(3, 6)
-            Charisma, _, _ = util.roll(3, 6)
-            Comeliness, _, _ = util.roll(3, 6)
+            stats = list()
 
-            char.strength = Strength
-            char.intelligence = Intelligence
-            char.wisdom = Wisdom
-            char.dexterity = Dexterity
-            char.constitution = Constitution
-            char.charisma = Charisma
-            char.comeliness = Comeliness
+            for _ in range(7):
+                stats.append(util.roll_top(dice, 3, 6))
+
+            char.strength = stats[0]
+            char.intelligence = stats[1]
+            char.wisdom = stats[2]
+            char.dexterity = stats[3]
+            char.constitution = stats[4]
+            char.charisma = stats[5]
+            char.comeliness = stats[6]
 
             session.commit()
 
