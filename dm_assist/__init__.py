@@ -11,17 +11,21 @@ from dm_assist.config import config as conf
 from dm_assist import voice
 from dm_assist import misc
 from dm_assist import roleplay
+from dm_assist import sql
+
+import dm_assist.roleplay.character
 
 
 Bot = commands.Bot(
-    command_prefix=commands.when_mentioned_or(conf['config']['prefix']),
+    command_prefix=commands.when_mentioned_or(conf.config.prefix),
     description='An attempt to understand the confusing world around me.'
 )
 
 
 Bot.add_cog(voice.Music(Bot))
-Bot.add_cog(roleplay.RolePlay(Bot))
+Bot.add_cog(roleplay.character.Character(Bot))
 Bot.add_cog(misc.Misc(Bot))
+Bot.add_cog(roleplay.Roleplay(Bot))
 
 
 if not discord.opus.is_loaded():
@@ -31,7 +35,7 @@ if not discord.opus.is_loaded():
     # opus library is located in and with the proper filename.
     # note that on windows this DLL is automatically provided for you
     try:
-        discord.opus.load_opus(conf['config']['voice']['opus'])
+        discord.opus.load_opus(conf.config.voice.opus)
     except discord.opus.OpusError as e:
         print(e)
         print("Unable to load 'opus' library")
@@ -51,14 +55,21 @@ async def on_ready():
 
 
 def create_token():
-    if conf['config'].get('token') is None:
+    if conf.config.get('token') is None or conf.config.get('token') == 'Insert Token Here':
 
         print("No token exists!")
         
-        token = input("Enter Token: ")
-        conf['config']['token'] = token
+        token = input("Enter Token (press enter to skip): ")
+        if token == '':
+            token = 'Insert Token Here'
+
+        conf.config['token'] = token
 
         config.save()
+        
+        if token == 'Insert Token Here':
+            print("** insert the token the token in '{}' before starting the bot again **".format(os.path.relpath(config.__config_file)))
+            raise SystemExit
 
 
 @contextmanager
@@ -83,9 +94,16 @@ def sigint_shutdown():
         signal.signal(signal.SIGINT, original_sigint_handler)
 
 def serve():
-    create_token()
+    print("Loading configuration..")
+    try:
+        create_token()
+    except SystemExit:
+        return
+
+    print("Loading SQL..")
+    sql.sql.init()
 
     print("Starting Bot..")
     
     with sigint_shutdown():
-        Bot.run(conf['config']['token'])
+        Bot.run(conf.config.token)
