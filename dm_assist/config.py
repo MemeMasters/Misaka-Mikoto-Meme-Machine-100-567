@@ -114,6 +114,16 @@ def get_defaults():
         )
     )
 
+    defaults['music'] = dict(
+        majestic=["https://soundcloud.com/vindsvept/at-the-edge-of-the-world", "https://soundcloud.com/vindsvept/castle-in-the-sky", "https://soundcloud.com/vindsvept/vindsvept-moments-respite", "https://soundcloud.com/vindsvept/conjuration", "https://soundcloud.com/vindsvept/vindsvept-vasaloppet", "https://soundcloud.com/vindsvept/ruthless", "https://soundcloud.com/vindsvept/vindsveptfallen", "https://soundcloud.com/vindsvept/vindsvept-quests-end", "https://soundcloud.com/vindsvept/heart-of-ice"],
+        tavern=["https://soundcloud.com/vindsvept/through-the-woods-we-ran", "https://soundcloud.com/vindsvept/light-of-the-sea", "https://soundcloud.com/vindsvept/a-new-adventure", "https://soundcloud.com/vindsvept/vindsvept-unsung-heroes", "https://soundcloud.com/vindsvept/vindsvept-from-afar", "https://soundcloud.com/vindsvept/vindsvept-dryads-dream", "https://soundcloud.com/vindsvept/vindsvept-spellbound-part-two", "https://soundcloud.com/vindsvept/gjallarhorn-awaken-the-gods-feat-gaute-ohrn", "https://soundcloud.com/vindsvept/vindsvept-across-the-plains", "https://soundcloud.com/vindsvept/vindsvept-hearthfire", "https://soundcloud.com/vindsvept/untamed", "https://soundcloud.com/vindsvept/seven-flowers", "https://soundcloud.com/vindsvept/the-forgotten-forest", "https://soundcloud.com/vindsvept/nightfall", "https://soundcloud.com/vindsvept/skymning"],
+        quest=["https://soundcloud.com/vindsvept/vindsvept-one-step-too-far", "https://soundcloud.com/vindsvept/into-the-unknown", "https://soundcloud.com/vindsvept/i-kvallsljus", "https://soundcloud.com/vindsvept/to-vigrith-the-field-of-battle", "https://soundcloud.com/vindsvept/fimbulwinter-winter-following-winter", "https://soundcloud.com/vindsvept/vindsvept-across-the-plains", "https://soundcloud.com/vindsvept/a-song-from-the-deep", "https://soundcloud.com/vindsvept/over-the-mountain"],
+        travel=["https://soundcloud.com/vindsvept/into-silence-part-two", "https://soundcloud.com/vindsvept/keeper-of-the-forest", "https://soundcloud.com/vindsvept/into-the-unknown", "https://soundcloud.com/vindsvept/wildkin-glade", "https://soundcloud.com/vindsvept/vindsvept-dryads-dream", "https://soundcloud.com/vindsvept/vindsvept-across-the-plains", "https://soundcloud.com/vindsvept/vindsvept-westward"],
+        calm=["https://soundcloud.com/vindsvept/into-silence", "https://soundcloud.com/vindsvept/evenfall", "https://soundcloud.com/vindsvept/keeper-of-the-forest", "https://soundcloud.com/vindsvept/vindsvept-moments-respite", "https://soundcloud.com/vindsvept/the-shapers-realm", "https://soundcloud.com/vindsvept/winters-night", "https://soundcloud.com/vindsvept/vindsvept-crystal-forest", "https://soundcloud.com/vindsvept/vindsvept-daylights-end", "https://soundcloud.com/vindsvept/the-fae", "https://soundcloud.com/vindsvept/the-journey-home", "https://soundcloud.com/vindsvept/chasing-shadows", "https://soundcloud.com/vindsvept/winters-tale", "https://soundcloud.com/vindsvept/moonless-night", "https://soundcloud.com/vindsvept/fall-of-the-leaf"],
+        battle=["https://soundcloud.com/vindsvept/throat-of-the-world", "https://soundcloud.com/vindsvept/ruthless", "https://soundcloud.com/vindsvept/ragnarok-fate-of-the-gods", "https://soundcloud.com/vindsvept/naglfar-ship-of-the-dead", "https://soundcloud.com/vindsvept/the-fall", "https://soundcloud.com/vindsvept/last-stand", "https://soundcloud.com/vindsvept/guardian", "https://soundcloud.com/vindsvept/a-world-divided", "https://soundcloud.com/vindsvept/chasing-the-traitor-part-two", "https://soundcloud.com/vindsvept/heart-of-ice", "https://soundcloud.com/vindsvept/the-sirens-cadence", "https://soundcloud.com/vindsvept/on-the-other-side", "https://soundcloud.com/vindsvept/as-we-march"],
+        sneak=["https://soundcloud.com/vindsvept/sons-of-loki-vanagandr-jormungandr", "https://soundcloud.com/vindsvept/mimers-advice-allfathers-hope", "https://soundcloud.com/vindsvept/vindsvept-season-unending", "https://soundcloud.com/vindsvept/wherever-the-path-may-lead", "https://soundcloud.com/vindsvept/over-the-mountain", "https://soundcloud.com/vindsvept/hollow", "https://soundcloud.com/vindsvept/clockwork", "https://soundcloud.com/vindsvept/lycanthropy", "https://soundcloud.com/vindsvept/illuminate"]
+    )
+
 
     return defaults
 
@@ -157,6 +167,7 @@ class Conf(SettingDict):
         self._conf = config
         self._lines = Lines(self._conf['lines'])
         self._config = Config(self._conf['config'])
+        self._music = Music(self._conf['music'])
     
     @property
     def config(self):
@@ -165,6 +176,10 @@ class Conf(SettingDict):
     @property
     def lines(self):
         return self._lines
+    
+    @property
+    def music(self):
+        return self._music
 
 
 class Lines(SettingDict):
@@ -205,6 +220,12 @@ class Lines(SettingDict):
     @property
     def user_error(self):
         return self._user_error
+
+
+class Music(SettingDict):
+
+    def __init__(self, config):
+        super().__init__(config)
 
 
 class UserError(SettingDict):
