@@ -61,7 +61,7 @@ class Character:
 
         return stats
 
-    async def get_character(self, session, name, user_id) -> (Character_model, User_model):
+    def get_character(self, session, name, user_id) -> (Character_model, User_model):
         """
         Get a character from a user.
 
@@ -73,7 +73,7 @@ class Character:
         """
         user = session.query(User_model).get(user_id)
         if user is None:
-            await self.bot.say(util.get_random_line(config.lines.user_error.no_user))
+            self.bot.say(util.get_random_line(config.lines.user_error.no_user))
             raise NoUserError()
 
         try:
@@ -81,12 +81,12 @@ class Character:
 
             if char is None:
                 if name is None:
-                    await self.bot.say(util.get_random_line(config.lines.user_error.no_char))
+                    self.bot.say(util.get_random_line(config.lines.user_error.no_char))
                 else:
-                    await self.bot.say(util.get_random_line(config.lines.user_error.wrong_char))
+                    self.bot.say(util.get_random_line(config.lines.user_error.wrong_char))
                 raise NoUserError()
         except sql.roleplay_model.TooManyCharactersError:
-            await self.bot.say(util.get_random_line(config.lines.user_error.too_many_char))
+            self.bot.say(util.get_random_line(config.lines.user_error.too_many_char))
             raise NoUserError()
         
         return char, user
@@ -142,7 +142,7 @@ class Character:
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+            char, _ = self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -173,7 +173,7 @@ class Character:
                 '-' * 20,
                 self.__class__.length("Class:", util.format_name(char.classname), 20),
                 self.__class__.length("XP:", '{:,}'.format(char.xp), 20),
-                self.__class__.length("Next level:", '{:,}'.format(classs.xp[level] - char.xp + 1), 20) \
+                self.__class__.length("Next level:", '{:,}'.format(classs.xp[level - 1] - char.xp + 1), 20) \
                     if level is not classs.max_level else \
                 self.__class__.length("Next level:", 'Max', 20),
                 self.__class__.length("Level:", str(level), 20)
@@ -203,7 +203,7 @@ class Character:
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = self.get_character(session, character, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -264,7 +264,7 @@ class Character:
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = self.get_character(session, character, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -304,7 +304,7 @@ class Character:
         session = sql.sql.getSession()
         
         try:
-            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+            char, _ = self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -323,7 +323,7 @@ class Character:
         
         level += 1
 
-        char.xp = classs.get_xp(level + 1) + 1
+        char.xp = classs.get_xp(level) + 1
 
         session.commit()
 
@@ -360,7 +360,7 @@ class Character:
 
         session = sql.sql.getSession()
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = self.get_character(session, character, self.get_user_id(ctx))
         except NoUserError:
             return
         
@@ -422,7 +422,7 @@ class Character:
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = self.get_character(session, character, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -486,7 +486,7 @@ class Character:
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+            char, _ = self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -574,7 +574,7 @@ class Character:
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+            char, _ = self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
         
@@ -656,7 +656,7 @@ class Character:
             session = sql.sql.getSession()
 
             try:
-                char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+                char, _ = self.get_character(session, name, self.get_user_id(ctx))
             except NoUserError:
                 return
             
@@ -733,7 +733,7 @@ class Character:
 
         session = sql.sql.getSession()
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = self.get_character(session, character, self.get_user_id(ctx))
         except NoUserError:
             return
 
