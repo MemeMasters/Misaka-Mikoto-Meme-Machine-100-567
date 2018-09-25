@@ -44,7 +44,10 @@ class Character(base):
         super().__init__(*args, **kwargs)
 
     def get_class(self):
-        return experience.classes.get(self.classname)(race=self.get_race())
+        classs = experience.classes.get(self.classname)
+        if classs is not None:
+            return classs(race=self.get_race())
+        return None
     
     def get_level(self):
         clss = self.get_class()
