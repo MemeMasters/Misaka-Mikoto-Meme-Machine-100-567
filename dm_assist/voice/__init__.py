@@ -3,6 +3,8 @@ from discord.ext import commands
 
 import asyncio
 
+from dm_assist.config import config
+
 
 class VoiceEntry:
     def __init__(self, message, player):
@@ -28,6 +30,8 @@ class VoiceState:
         self.skip_votes = set() # a set of user_ids that voted
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
         self.loop = False
+
+        self._volume = config.config.voice.default_volume / 100
 
     def is_playing(self):
         if self.voice is None or self.current is None:
@@ -56,8 +60,19 @@ class VoiceState:
             else:
                 self.current = self.current
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+            self.current.player.volume = self.volume
             self.current.player.start()
             await self.play_next_song.wait()
+    
+    @property
+    def volume(self):
+        return self._volume
+    
+    @volume.setter
+    def volume(self, value):
+        if self.is_playing():
+            self.current.player.volume = value
+        self._volume = value
 
 class Music:
     """Voice related commands.
@@ -152,20 +167,26 @@ class Music:
             fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
             await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
         else:
-            player.volume = 0.06
             entry = VoiceEntry(ctx.message, player)
             await self.bot.say('Enqueued ' + str(entry))
             await state.songs.put(entry)
 
     @commands.command(pass_context=True, no_pm=True)
-    async def volume(self, ctx, value : int=100):
+    async def volume(self, ctx, value=None):
         """Sets the volume of the currently playing song."""
 
         state = self.get_voice_state(ctx.message.server)
-        if state.is_playing():
-            player = state.player
-            player.volume = value / 100
-            await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
+
+        if value is None:
+            await self.bot.say('The current volume is {:.0%}'.format(state.volume))
+            return
+
+        try:
+            state.volume = int(value) / 100
+        except ValueError:
+            await self.bot.say('{} is not a valid volume'.format(value))
+        else:
+            await self.bot.say('Set the volume to {:.0%}'.format(state.volume))
 
     @commands.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
