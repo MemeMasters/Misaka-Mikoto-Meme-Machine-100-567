@@ -81,7 +81,8 @@ def get_defaults():
 
     defaults['config'] = dict(
         voice=dict(
-            opus='opus'
+            opus='opus',
+            default_volume=50
         ),
         prefix='!',
         token='Insert Token Here'
@@ -280,6 +281,10 @@ class Voice(SettingDict):
     @property
     def opus(self):
         return self._voice['opus']
+    
+    @property
+    def default_volume(self):
+        return self._voice['default_volume']
 
 
 # Load the config on import
