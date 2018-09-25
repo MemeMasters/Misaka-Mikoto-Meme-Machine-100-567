@@ -168,7 +168,6 @@ class Conf(SettingDict):
         self._conf = config
         self._lines = Lines(self._conf['lines'])
         self._config = Config(self._conf['config'])
-        self._music = Music(self._conf['music'])
     
     @property
     def config(self):
@@ -180,7 +179,7 @@ class Conf(SettingDict):
     
     @property
     def music(self):
-        return self._music
+        return self._conf['music']
 
 
 class Lines(SettingDict):
@@ -221,12 +220,6 @@ class Lines(SettingDict):
     @property
     def user_error(self):
         return self._user_error
-
-
-class Music(SettingDict):
-
-    def __init__(self, config):
-        super().__init__(config)
 
 
 class UserError(SettingDict):
