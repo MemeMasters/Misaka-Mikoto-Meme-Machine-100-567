@@ -89,17 +89,20 @@ class ExtendableIterator:
 class XP:
 
     def __init__(self, xp: tuple, title: tuple, hitdice: int, num_hitdice: tuple,
-                 mod_hitdice: tuple, final_xp_perlevel=-1, final_title='',
-                 final_hitdice_perlevel=-1, final_mod_hitdice_perlevel=-1, max_level=-1):
-        self.xp = ExtendableTuple(xp, final_xp_perlevel, maximum=max_level-2)
-        self.title = ExtendableTuple(title, final_title, extendableTitle, maximum=max_level-1)
+                 mod_hitdice: tuple, classname, final_xp_perlevel=-1, final_title='',
+                 final_hitdice_perlevel=-1, final_mod_hitdice_perlevel=-1, max_level=-1,
+                 race=None):
+        self._max_level = max_level
+        self.classname = classname
+        self._race = race
+
+        self.xp = ExtendableTuple(xp, final_xp_perlevel, maximum=self.max_level-2)
+        self.title = ExtendableTuple(title, final_title, extendableTitle, maximum=self.max_level-1)
         self.hitdice = hitdice
-        self.num_hitdice = ExtendableTuple(num_hitdice, final_hitdice_perlevel, maximum=max_level-1)
-        self.mod_hitdice = ExtendableTuple(mod_hitdice, final_mod_hitdice_perlevel, maximum=max_level-1)
-        self.max_level = max_level
+        self.num_hitdice = ExtendableTuple(num_hitdice, final_hitdice_perlevel, maximum=self.max_level-1)
+        self.mod_hitdice = ExtendableTuple(mod_hitdice, final_mod_hitdice_perlevel, maximum=self.max_level-1)
         self.final_hitdice_perlevel = final_hitdice_perlevel
         self.final_mod_hitdice_perlevel = final_mod_hitdice_perlevel
-        self.max_level = max_level
         self.final_xp_perlevel = final_xp_perlevel
     
     def get_level(self, xp):
@@ -113,6 +116,8 @@ class XP:
 
         # Check if the loop reached its actual limit
         if self.max_level is not -1:
+            if level > self.max_level:
+                return self.max_level
             return level
 
         # Calculate the xp quickly
@@ -134,141 +139,206 @@ class XP:
     
     def get_level_index(self, xp):
         return self.get_level(xp) - 1
+    
+    @property
+    def max_level(self):
+        if self._race is not None:
+            try:
+                min_level = self._race.validate_class(self.classname)
+            except:
+                return self._max_level
+            if isinstance(min_level, int):
+                return min_level
+        return self._max_level
+
+class Cleric(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Cleric, self).__init__(
+            xp=(1500, 3000, 6000, 13000, 27500, 55000, 110000, 225000, 450000, 675000, 900000),
+            title=('Acolyte', 'Adept', 'Priest', 'Curate', 'Curate', "Canon", 'Lama', 'Patriarch', 'High Priest'),
+            hitdice=8,
+            num_hitdice=tuple(x for x in range(1, 10)),
+            mod_hitdice=(0,) * 9,
+            final_xp_perlevel=225000,
+            final_title='High Priest',
+            final_hitdice_perlevel=0,
+            final_mod_hitdice_perlevel=2,
+            classname='cleric',
+            *args, **kwargs
+        )
 
 
-cleric = XP(
-    xp=(1500, 3000, 6000, 13000, 27500, 55000, 110000, 225000, 450000, 675000, 900000),
-    title=('Acolyte', 'Adept', 'Priest', 'Curate', 'Curate', "Canon", 'Lama', 'Patriarch', 'High Priest'),
-    hitdice=8,
-    num_hitdice=tuple(x for x in range(1, 10)),
-    mod_hitdice=(0,) * 9,
-    final_xp_perlevel=225000,
-    final_title='High Priest',
-    final_hitdice_perlevel=0,
-    final_mod_hitdice_perlevel=2
-)
+class Druid(XP):
+
+    @staticmethod
+    def __get_initiate(number):
+        initiate = "initiate of the {} circle"
+
+        init = str(number)
+        if number is 1:
+            init += "st"
+        elif number is 2:
+            init += 'nd'
+        elif number is 3:
+            init += 'rd'
+        else:
+            init += 'th'
+
+        return initiate.format(init)
+
+    def __init__(self, *args, **kwargs):
+        super(Druid, self).__init__(
+            xp=(2000, 4000, 7500, 12500, 20000, 35000, 60000, 90000, 125000, 200000, 300000, 750000, 1500000),
+            title=("Aspirant", 'Ovate') + tuple(Druid.__get_initiate(x) for x in range(1, 10)) + ("Druid", "ArchDruid", "The Great Druid"),
+            hitdice=8,
+            num_hitdice=tuple(x for x in range(1, 15)),
+            mod_hitdice=(0,) * 14,
+            max_level=14,
+            classname='druid',
+            *args, **kwargs
+        )
 
 
-def __get_initiate(number):
-    initiate = "initiate of the {} circle"
+class Fighter(XP):
 
-    init = str(number)
-    if number is 1:
-        init += "st"
-    elif number is 2:
-        init += 'nd'
-    elif number is 3:
-        init += 'rd'
-    else:
-        init += 'th'
-
-    return initiate.format(init)
-
-
-druid = XP(
-    xp=(2000, 4000, 7500, 12500, 20000, 35000, 60000, 90000, 125000, 200000, 300000, 750000, 1500000),
-    title=("Aspirant", 'Ovate') + tuple(__get_initiate(x) for x in range(1, 10)) + ("Druid", "ArchDruid", "The Great Druid"),
-    hitdice=8,
-    num_hitdice=tuple(x for x in range(1, 15)),
-    mod_hitdice=(0,) * 14,
-    max_level=14
-)
-
-fighter = XP(
-    xp=(2000, 4000, 8000, 18000, 35000, 70000, 125000, 250000, 500000, 750000),
-    title=("Veteran", "Warrior", 'Swordsman', 'Hero', 'Swashbuckler', 'Myrmidon', 'Champion', 'Superhero', 'Lord'),
-    hitdice=10,
-    num_hitdice=tuple(x for x in range(1, 10)),
-    mod_hitdice=(0,) * 10,
-    final_title='Lord',
-    final_xp_perlevel=250000,
-    final_hitdice_perlevel=0,
-    final_mod_hitdice_perlevel=3
-)
+    def __init__(self, *args, **kwargs):
+        super(Fighter, self).__init__(
+            xp=(2000, 4000, 8000, 18000, 35000, 70000, 125000, 250000, 500000, 750000),
+            title=("Veteran", "Warrior", 'Swordsman', 'Hero', 'Swashbuckler', 'Myrmidon', 'Champion', 'Superhero', 'Lord'),
+            hitdice=10,
+            num_hitdice=tuple(x for x in range(1, 10)),
+            mod_hitdice=(0,) * 10,
+            final_title='Lord',
+            final_xp_perlevel=250000,
+            final_hitdice_perlevel=0,
+            final_mod_hitdice_perlevel=3,
+            classname='fighter',
+            *args, **kwargs
+        )
 
 
-paladin = XP(
-    xp=(2750, 5500, 12000, 24000, 45000, 95000, 175000, 350000, 700000, 1050000, 1400000),
-    title=('Gallant', 'Keeper', 'Protector', 'Defender', 'Warder', 'Guardian', 'Chevalier', 'Justiciar', 'Paladin'),
-    hitdice=10,
-    num_hitdice=tuple(x for x in range(1, 10)),
-    mod_hitdice=(0,) * 9,
-    final_xp_perlevel=350000,
-    final_hitdice_perlevel=0,
-    final_title='Paladin',
-    final_mod_hitdice_perlevel=3
-)
+class Paladin(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Paladin, self).__init__(
+            xp=(2750, 5500, 12000, 24000, 45000, 95000, 175000, 350000, 700000, 1050000, 1400000),
+            title=('Gallant', 'Keeper', 'Protector', 'Defender', 'Warder', 'Guardian', 'Chevalier', 'Justiciar', 'Paladin'),
+            hitdice=10,
+            num_hitdice=tuple(x for x in range(1, 10)),
+            mod_hitdice=(0,) * 9,
+            final_xp_perlevel=350000,
+            final_hitdice_perlevel=0,
+            final_title='Paladin',
+            final_mod_hitdice_perlevel=3,
+            classname='paladin',
+            *args, **kwargs
+        )
 
 
-ranger = XP(
-    xp=(2250, 4500, 10000, 20000, 40000, 90000, 150000, 225000, 325000, 650000, 975000, 1300000),
-    title=('Runner', 'Strider', 'Scout', 'Courser', 'Tracker', 'Guide', 'Pathfinder', 'Ranger', 'Ranger Knight', 'Ranger Lord'),
-    hitdice=8,
-    num_hitdice=tuple(x for x in range(2, 12)),
-    mod_hitdice=(0,) * 10,
-    final_title='Ranger Lord',
-    final_hitdice_perlevel=0,
-    final_mod_hitdice_perlevel=2,
-    final_xp_perlevel=325000
-)
+class Ranger(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Ranger, self).__init__(
+            xp=(2250, 4500, 10000, 20000, 40000, 90000, 150000, 225000, 325000, 650000, 975000, 1300000),
+            title=('Runner', 'Strider', 'Scout', 'Courser', 'Tracker', 'Guide', 'Pathfinder', 'Ranger', 'Ranger Knight', 'Ranger Lord'),
+            hitdice=8,
+            num_hitdice=tuple(x for x in range(2, 12)),
+            mod_hitdice=(0,) * 10,
+            final_title='Ranger Lord',
+            final_hitdice_perlevel=0,
+            final_mod_hitdice_perlevel=2,
+            final_xp_perlevel=325000,
+            classname='range',
+            *args, **kwargs
+        )
 
 
-magic_user = XP(
-    xp=(2500, 5000, 10000, 22500, 40000, 60000, 90000, 135000, 250000, 375000, 750000, 1125000, 1500000, 1875000, 2250000, 2625000, 3000000, 3375000),
-    title=('Prestidigitator', 'Evoker', 'Conjurer', 'Theurgist', 'Thaumaturgist', 'Magicician', 'Enchanter', 'Warlock', 'Sorcerer', 'Necromancer', 'Wizard'),
-    hitdice=4,
-    num_hitdice=tuple(x for x in range(1, 12)),
-    mod_hitdice=(0,) * 11,
-    final_title='Wizard',
-    final_xp_perlevel=375000,
-    final_hitdice_perlevel=0,
-    final_mod_hitdice_perlevel=1
-)
+class Magic_user(XP):
+    
+    def __init__(self, *args, **kwargs):
+        super(Magic_user, self).__init__(
+            xp=(2500, 5000, 10000, 22500, 40000, 60000, 90000, 135000, 250000, 375000, 750000, 1125000, 1500000, 1875000, 2250000, 2625000, 3000000, 3375000),
+            title=('Prestidigitator', 'Evoker', 'Conjurer', 'Theurgist', 'Thaumaturgist', 'Magicician', 'Enchanter', 'Warlock', 'Sorcerer', 'Necromancer', 'Wizard'),
+            hitdice=4,
+            num_hitdice=tuple(x for x in range(1, 12)),
+            mod_hitdice=(0,) * 11,
+            final_title='Wizard',
+            final_xp_perlevel=375000,
+            final_hitdice_perlevel=0,
+            final_mod_hitdice_perlevel=1,
+            classname='magic_user',
+            *args, **kwargs
+        )
 
 
-illusionist = XP(
-    xp=(2250, 4500, 9000, 18000, 35000, 60000, 95000, 145000, 220000, 440000, 660000, 880000),
-    title=('Prestidigitator', 'Minor Trickster', 'Trickster', 'Master Trickster', 'Cabalist', 'Visionist', 'Phantasmist', 'Spellbinder', 'Illusionist'),
-    hitdice=4,
-    num_hitdice=tuple(x for x in range(1, 11)),
-    mod_hitdice=(0,) * 10,
-    final_title='Illusionist',
-    final_xp_perlevel=220000,
-    final_hitdice_perlevel=0,
-    final_mod_hitdice_perlevel=1
-)
+class Illusionist(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Illusionist, self).__init__(
+            xp=(2250, 4500, 9000, 18000, 35000, 60000, 95000, 145000, 220000, 440000, 660000, 880000),
+            title=('Prestidigitator', 'Minor Trickster', 'Trickster', 'Master Trickster', 'Cabalist', 'Visionist', 'Phantasmist', 'Spellbinder', 'Illusionist'),
+            hitdice=4,
+            num_hitdice=tuple(x for x in range(1, 11)),
+            mod_hitdice=(0,) * 10,
+            final_title='Illusionist',
+            final_xp_perlevel=220000,
+            final_hitdice_perlevel=0,
+            final_mod_hitdice_perlevel=1,
+            classname='illusionist',
+            *args, **kwargs
+        )
 
 
-thief = XP(
-    xp=(1250, 2500, 5000, 10000, 20000, 42500, 70000, 110000, 160000, 220000, 440000, 660000),
-    title=('Rogue (Apprentice)', 'Footpad', 'Cutpurse', 'Robber', 'Burglar', 'Filcher', 'Sharper', 'Magsman', 'Thief', 'Master Thief'),
-    hitdice=6,
-    num_hitdice=tuple(x for x in range(1, 11)),
-    mod_hitdice=(0,) * 10,
-    final_title='Master Thief',
-    final_hitdice_perlevel=0,
-    final_mod_hitdice_perlevel=2
-)
+class Thief(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Thief, self).__init__(
+            xp=(1250, 2500, 5000, 10000, 20000, 42500, 70000, 110000, 160000, 220000, 440000, 660000),
+            title=('Rogue (Apprentice)', 'Footpad', 'Cutpurse', 'Robber', 'Burglar', 'Filcher', 'Sharper', 'Magsman', 'Thief', 'Master Thief'),
+            hitdice=6,
+            num_hitdice=tuple(x for x in range(1, 11)),
+            mod_hitdice=(0,) * 10,
+            final_title='Master Thief',
+            final_hitdice_perlevel=0,
+            final_mod_hitdice_perlevel=2,
+            classname='thief',
+            *args, **kwargs
+        )
 
 
-assassin = XP(
-    xp=(1500, 3000, 6000, 12000, 25000, 50000, 100000, 200000, 300000, 425000, 575000, 75000, 1000000, 1500000),
-    title=('Bravo (Apprentice)', 'Rutterkin', 'Waghalter', 'Murderer', 'Thug', 'Killer', 'Cutthroat', 'Executioner', 'Assassin', 'Expert Assassin', 'Senior Assassin', 'Chief Assassin', 'Prime Assassin', 'Guildmaster Assassin', 'Grandfather of Assassins'),
-    hitdice=6,
-    num_hitdice=tuple(x for x in range(1, 16)),
-    mod_hitdice=(0,) * 15,
-    max_level=15
-)
+class Assassin(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Assassin, self).__init__(
+            xp=(1500, 3000, 6000, 12000, 25000, 50000, 100000, 200000, 300000, 425000, 575000, 75000, 1000000, 1500000),
+            title=('Bravo (Apprentice)', 'Rutterkin', 'Waghalter', 'Murderer', 'Thug', 'Killer', 'Cutthroat', 'Executioner', 'Assassin', 'Expert Assassin', 'Senior Assassin', 'Chief Assassin', 'Prime Assassin', 'Guildmaster Assassin', 'Grandfather of Assassins'),
+            hitdice=6,
+            num_hitdice=tuple(x for x in range(1, 16)),
+            mod_hitdice=(0,) * 15,
+            max_level=15,
+            classname='assassin',
+            *args, **kwargs
+        )
 
 
-monk = XP(
-    xp=(2250, 4750, 10000, 22500, 47500, 98000, 200000, 350000, 500000, 700000, 950000, 1250000, 1750000, 2250000, 2750000, 3250000),
-    title=('Novice', 'Initiate', 'Brother', 'Disciple', 'Immaculate', 'Master', 'Superior Master', 'Master of Dragons', 'Master of the North Wind', 'Master of the West Wind', 'Master of the South Wind', 'Master of the East Wind', 'Master of Winter', 'Master of Autumn', 'Master of Summer', 'Master of Spring', 'Grand Master of Flowers'),
-    hitdice=4,
-    num_hitdice=tuple(x for x in range(2, 19)),
-    mod_hitdice=(0,) * 17,
-    max_level=17
-)
+class Monk(XP):
+
+    def __init__(self, *args, **kwargs):
+        super(Monk, self).__init__(
+            xp=(2250, 4750, 10000, 22500, 47500, 98000, 200000, 350000, 500000, 700000, 950000, 1250000, 1750000, 2250000, 2750000, 3250000),
+            title=('Novice', 'Initiate', 'Brother', 'Disciple', 'Immaculate', 'Master', 'Superior Master', 'Master of Dragons', 'Master of the North Wind', 'Master of the West Wind', 'Master of the South Wind', 'Master of the East Wind', 'Master of Winter', 'Master of Autumn', 'Master of Summer', 'Master of Spring', 'Grand Master of Flowers'),
+            hitdice=4,
+            num_hitdice=tuple(x for x in range(2, 19)),
+            mod_hitdice=(0,) * 17,
+            max_level=17,
+            classname='monk',
+            *args, **kwargs
+        )
+        
+    @property
+    def max_level(self):
+        return super().max_level
 
 
-classes = dict(cleric=cleric, druid=druid, fighter=fighter, paladin=paladin, ranger=ranger, magic_user=magic_user, illusionist=illusionist, thief=thief, assassin=assassin, monk=monk)
+classes = dict(cleric=Cleric, druid=Druid, fighter=Fighter, paladin=Paladin, ranger=Ranger, magic_user=Magic_user, illusionist=Illusionist, thief=Thief, assassin=Assassin, monk=Monk)
