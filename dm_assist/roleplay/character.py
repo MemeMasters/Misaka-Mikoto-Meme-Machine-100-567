@@ -9,6 +9,8 @@ from dm_assist import util
 from dm_assist import sql
 from dm_assist.sql.roleplay_model import Character as Character_model, User as User_model
 
+from dm_assist import handbook
+
 
 class NoUserError(Exception):
     pass
@@ -39,18 +41,36 @@ class Character:
 
             return prefix + " " * (width - total_length) + value
 
-    def get_stats(self, character: Character_model):
-        stats = self.__class__.length("Strength:", str(character.strength), 20) + '\n' + \
-                self.__class__.length("Intelligence:", str(character.intelligence), 20) + '\n' + \
-                self.__class__.length("Wisdom:", str(character.wisdom), 20) + '\n' + \
-                self.__class__.length("Dexterity:", str(character.dexterity), 20) + '\n' + \
-                self.__class__.length("Constitution:", str(character.constitution), 20) + '\n' + \
-                self.__class__.length("Charisma:", str(character.charisma), 20) + '\n' + \
-                self.__class__.length("Comeliness:", str(character.comeliness), 20) + '\n'
+    def get_stats(self, character: handbook.Character):
+        base = '{}\n' * 7
+
+        def format_stat(string, stat, mod):
+            stat_str = self.__class__.length(string + ":", str(stat + mod), 20)
+            mod = ' ({} {}{})'.format(stat, '+' if mod > 0 else '-', abs(mod)) if mod is not 0 else ''
+            return stat_str + mod
+
+        stats = base.format(
+            format_stat('Strength', character.stats.str, character.stats_mod.str),
+            format_stat('Intelligence', character.stats.int, character.stats_mod.int),
+            format_stat('Wisdom', character.stats.wis, character.stats_mod.wis),
+            format_stat('Dexterity', character.stats.dex, character.stats_mod.dex),
+            format_stat('Constitution', character.stats.con, character.stats_mod.con),
+            format_stat('Charisma', character.stats.cha, character.stats_mod.cha),
+            format_stat('Comeliness', character.stats.com, character.stats_mod.com)
+        )
 
         return stats
 
     async def get_character(self, session, name, user_id) -> (Character_model, User_model):
+        """
+        Get a character from a user.
+
+        :param session: the sql session to get the user from
+
+        :param name: name of the character
+
+        :param user_id: id of the user
+        """
         user = session.query(User_model).get(user_id)
         if user is None:
             await self.bot.say(util.get_random_line(config.lines.user_error.no_user))
@@ -70,126 +90,9 @@ class Character:
             raise NoUserError()
         
         return char, user
-        
-    @commands.command(pass_context=True)
-    async def rollstats(self, ctx, *args):
-            '''Rolls 7 sets of 3d6, with mild flexibility. 
-            Increasing the number of dice per stat will not create huge numbers, as the stats are generated from the highest three numbers rolled per set. 
-            Usage: !stats [character name] [x], where x is the number of dice per stat.. 
-            It will apply the stats rolled without confirmation!'''
-            
-            character = self.get_user_name(args)
-            if len(args) is 1:
-                character = None
-                dice = args[0]
-            elif len(args) is 0:
-                character = None
-                dice = '3'
-            else:
-                dice = args[-1]
-                character = self.get_user_name(args[:-1])
 
-            try:
-                dice = int(dice)
-                if dice < 3:
-                    raise ValueError
-            except ValueError:
-                await self.bot.say("{} is not a valid number!".format(args[0]))
-                return
-
-            session = sql.sql.getSession()
-
-            try:
-                char, _ = await self.get_character(session, character, self.get_user_id(ctx))
-            except NoUserError:
-                return
-
-            stats = list()
-
-            for _ in range(7):
-                stats.append(util.roll_top(dice, 3, 6))
-
-            char.strength = stats[0]
-            char.intelligence = stats[1]
-            char.wisdom = stats[2]
-            char.dexterity = stats[3]
-            char.constitution = stats[4]
-            char.charisma = stats[5]
-            char.comeliness = stats[6]
-
-            session.commit()
-
-            message = "Set the following stats to {}\n**```css\n{}\n```**".format(
-                util.format_name(char.name),
-                self.get_stats(char)
-            )
-
-            await self.bot.say(message)
+    # Basic character commands
     
-    @commands.command(pass_context=True)
-    async def setstat(self, ctx, *args):
-        '''
-        Set a specific stat value.
-        Usage: !setStat [character] <str|int|wis|dex|con|cha|com> <value>
-        '''
-
-        # Load the arguments
-        if len(args) is 2:
-            character = None
-        elif len(args) >= 3:
-            character = Character.get_user_name(args[:-2])
-        else:
-            await self.bot.say("Usage: !setStat [character] <str|int|wis|dex|con|cha|com> <value>")
-            return
-
-        pre_stat = args[-2]
-        value = args[-1]
-
-        # make sure the stat is lowercase and only the first 3 characters
-        stat = pre_stat.lower()[:3]
-        val = 10
-
-        # Parse the value
-        try:
-            val = int(value)
-        except ValueError:
-            await self.bot.say("{} is not a number".format(value))
-            return
-
-        session = sql.sql.getSession()
-        try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
-        except NoUserError:
-            return
-
-        # Set the stat
-        if stat == 'str':
-            char.strength = val
-        elif stat == 'int':
-            char.intelligence = val
-        elif stat == 'wis':
-            char.wisdom = val
-        elif stat == 'dex':
-            char.dexterity = val
-        elif stat == 'con':
-            char.constitution = val
-        elif stat == 'cha':
-            char.charisma = val
-        elif stat == 'com':
-            char.comeliness = val
-        else:
-            await self.bot.say("{} is not a valid stat".format(pre_stat))
-            return
-        
-        session.commit()
-
-        await self.bot.say("{}\nSuccessfully changed your {} stat to {}".format(
-            util.get_random_line(config.lines.crits),
-            stat, val
-        ))
-
-        print("Changed {}'s {} stat to be {}\n{}".format(char.id, stat, val, char))
-
     @commands.command(pass_context=True)
     async def newchar(self, ctx, *args):
         """This command creates a character unique to your Discord user id. Usage: !newchar <name>"""
@@ -227,7 +130,120 @@ class Character:
         ))
 
         print("Created new Character: {}\nThat belongs to {}".format(new_character, user))
+            
+    @commands.command(pass_context=True)
+    async def charinfo(self, ctx, *args):
+        '''Displays information about the character you made with !newchar.'''
+        
+        name = ' '.join(args).lower()
+        if name == '':
+            name = None
 
+        session = sql.sql.getSession()
+
+        try:
+            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+        except NoUserError:
+            return
+
+        character = char.get_character()
+        
+        classs = character.classs
+
+        if classs is None:
+            title = ''
+        else:
+            level = char.get_level()
+            title = classs.title[level - 1]
+
+        if character.race is not None:
+            race = char.race.capitalize()
+        else:
+            race = ''
+
+        name = "{} the {} {} {}\n".format(util.format_name(char.name), 'Male' if char.race else 'Female', race, title)
+        
+        stats = self.get_stats(char)
+
+
+        if classs is not None:
+            level = char.get_level()
+            xp = '{}\n' * 5
+            xp = xp.format(
+                '-' * 20,
+                self.__class__.length("Class:", util.format_name(char.classname), 20),
+                self.__class__.length("XP:", '{:,}'.format(char.xp), 20),
+                self.__class__.length("Next level:", '{:,}'.format(classs.xp[level] - char.xp + 1), 20) \
+                    if level is not classs.max_level else \
+                self.__class__.length("Next level:", 'Max', 20),
+                self.__class__.length("Level:", str(level), 20)
+            )
+        else:
+            xp = ''
+        
+        race_str = '{}\n' * 3
+        race_str = race_str.format(
+            '-' * 20,
+            self.__class__.length("Race:", race, 20),
+            self.__class__.length("Gender:", 'Male' if char.race else 'Female', 20)
+        )
+
+        await self.bot.say("{}\n**```css\n{}{}{}```**".format(name, stats, xp, race_str))
+            
+    @commands.command(pass_context=True)
+    async def delchar(self, ctx, *args):
+        '''Deletes your character (if you made one with !newchar.)'''
+
+        character = ' '.join(args).lower()
+        if character == '':
+            character = None
+
+        user_id = ctx.message.author.id
+
+        session = sql.sql.getSession()
+
+        try:
+            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+        except NoUserError:
+            return
+
+        session.delete(char)
+        session.commit()
+
+        await self.bot.say("Successfully deleted..wait, what was his name?")
+
+        print("Deleted a character of {}'s".format(user_id))
+
+    @commands.command(pass_context=True)
+    async def charlist(self, ctx):
+        '''
+        List out all of the characters you have
+        '''
+
+        user_id = ctx.message.author.id
+
+        session = sql.sql.getSession()
+
+        user = session.query(User_model).get(user_id)
+        if user is None:
+            await self.bot.say(util.get_random_line(config.lines.user_error.no_user))
+            return
+
+        characters = user.characters
+
+        if len(characters) is 0:
+            await self.bot.say(util.get_random_line(config.lines.user_error.no_char))
+            return
+        
+        message = "Here is a list of {}'s characters\n".format(ctx.message.author.name)
+
+        for char in characters:
+            message += "- {}\n".format(util.format_name(char.name))
+        
+        await self.bot.say(message)
+
+    # Level commands
+    
     @commands.command(pass_context=True)
     async def setlevel(self, ctx, *args):
         '''Set the level of a character'''
@@ -282,13 +298,13 @@ class Character:
     async def levelup(self, ctx, *args):
         '''Level up your character'''
 
-        character = Character.get_user_name(args)
-        character = None if character == '' else character
+        name = Character.get_user_name(args)
+        name = None if name == '' else name
 
         session = sql.sql.getSession()
         
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -307,7 +323,7 @@ class Character:
         
         level += 1
 
-        char.xp = classs.get_xp(level) + 1
+        char.xp = classs.get_xp(level + 1) + 1
 
         session.commit()
 
@@ -318,6 +334,8 @@ class Character:
             level,
             classs.title[level - 1]
         ))
+
+    # XP commands
 
     @commands.command(pass_context=True)
     async def addxp(self, ctx, *args):
@@ -446,6 +464,8 @@ class Character:
             next_level if classs.max_level is not new_level else ""
         ))
 
+    # Class Commands
+
     @commands.command(pass_context=True)
     async def setclass(self, ctx, *args):
         '''Change the class of the selected character.'''
@@ -457,16 +477,16 @@ class Character:
             return
 
         if len(args) is 1:
-            character = None
+            name = None
         else:
-            character = Character.get_user_name(args[:-1])
+            name = Character.get_user_name(args[:-1])
         
         new_class = args[-1].lower()[:3]
 
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
 
@@ -494,7 +514,16 @@ class Character:
             await self.bot.say(help_msg)
             return
         
-        classs = char.get_class()
+        character = char.get_character()
+
+        classs = character.classs
+
+        if character.race is not None:
+            try:
+                character.race.validate_class(char.classname)
+            except handbook.ValidationError:
+                await self.bot.say("{}s cannot be {}s".format(char.race.capitalize(), char.classname.capitalize()))
+                return
 
         session.commit()
 
@@ -507,100 +536,231 @@ class Character:
             level,
             char.classname.capitalize(),
             classs.title[level - 1]))
-            
+
+    # Race Commands
+
     @commands.command(pass_context=True)
-    async def charinfo(self, ctx, *args):
-        '''Displays information about the character you made with !newchar.'''
-        
-        character = ' '.join(args).lower()
-        if character == '':
-            character = None
+    async def setrace(self, ctx, *args):
+        '''Set the race of the selected character.'''
+
+        usage = 'usage: {}setrace [name] [gender] <race>'.format(config.config.prefix)
+        races = '**```The possible races are\ndwarf\nelf\ngnome\nhalfelf\nhalfling\nhalforc\nhuman\n```**'
+        help_msg = '{}\n{}'.format(usage, races)
+
+
+        if len(args) is 0:
+            await self.bot.say(help_msg)
+            return
+
+        if len(args) is 1:
+            name = None
+            gender = None
+        else:
+            gender = args[-2].lower()
+            if gender == 'male' or gender == 'female':
+                if len(args) is 2:
+                    name = None
+                else:
+                    name = Character.get_user_name(args[:-2])
+            else:
+                gender = None
+                name = Character.get_user_name(args[:-1])
+
+        race = args[-1].lower()
+        if race == 'help':
+            await self.bot.say(help_msg)
+            return
 
         session = sql.sql.getSession()
 
         try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+            char, _ = await self.get_character(session, name, self.get_user_id(ctx))
         except NoUserError:
             return
-
-        classs = char.get_class()
         
-        level = classs.get_level(char.xp)
-
-        if classs is None:
-            title = 'Classless'
-        else:
-            title = classs.title[level - 1]
-
-        character = "{} the {}\n".format(util.format_name(char.name), title)
-        
-        stats = self.get_stats(char)
-
-
-        if classs is not None:
-            xp = '{}\n' * 5
-            xp = xp.format(
-                '-' * 20,
-                self.__class__.length("Class:", util.format_name(char.classname), 20),
-                self.__class__.length("XP:", '{:,}'.format(char.xp), 20),
-                self.__class__.length("Next level:", '{:,}'.format(classs.xp[level] - char.xp + 1), 20) \
-                    if level is not classs.max_level else \
-                self.__class__.length("Next level:", 'Max', 20),
-                self.__class__.length("Level:", str(level), 20)
-            )
-        else:
-            xp = '{}\nNo class yet'.format('-' * 20)
-
-        await self.bot.say("{}\n**```css\n{}{}```**".format(character, stats, xp))
-            
-    @commands.command(pass_context=True)
-    async def delchar(self, ctx, *args):
-        '''Deletes your character (if you made one with !newchar.)'''
-
-        character = ' '.join(args).lower()
-        if character == '':
-            character = None
-
-        user_id = ctx.message.author.id
-
-        session = sql.sql.getSession()
-
-        try:
-            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
-        except NoUserError:
+        if race != 'dwarf' and \
+           race != 'elf' and \
+           race != 'gnome' and \
+           race != 'halfelf' and \
+           race != 'halfling' and \
+           race != 'halforc' and \
+           race != 'human':
+            await self.bot.say(help_msg)
             return
+        
+        char.race = race
+        if gender is not None:
+            char.gender = True if gender == 'male' else False
 
-        session.delete(char)
+        from dm_assist import handbook
+        from dm_assist.handbook import races
+
+        character = char.get_character()
+
+        if character.classs is not None:
+            try:
+                character.race.validate_class(char.classname)
+            except handbook.ValidationError:
+                await self.bot.say("{}s cannot be {}".format(util.format_name(race), util.format_name(char.classname)))
+                return
+        
+        result = character.race.validate_stats(character.stats, character.gender)
+
+        invalid = False
+        for _, value in result.items():
+            if value is not None:
+                await self.bot.say(value.message)
+                invalid = True
+        if invalid:
+            return
+        
+        char.stats_mod = character.race.get_Stat_modifiers()
+
         session.commit()
 
-        await self.bot.say("Successfully deleted..wait, what was his name?")
+        await self.bot.say("{}\nSuccessfully changed your race to be a {} {}".format(
+            util.get_random_line(config.lines.crits),
+            'Male' if char.gender else 'Female',
+            char.race.capitalize()
+        ))
 
-        print("Deleted a character of {}'s".format(user_id))
+        print('Changed a characters race')
+
+    # Stats Commands
 
     @commands.command(pass_context=True)
-    async def charlist(self, ctx):
+    async def rollstats(self, ctx, *args):
+            '''Rolls 7 sets of 3d6, with mild flexibility. 
+            Increasing the number of dice per stat will not create huge numbers, as the stats are generated from the highest three numbers rolled per set. 
+            Usage: !stats [x] [y], where x is the number of dice per stat and y is the number of stats. 
+            If you have made a character with !newchar, it will apply the stats rolled without confirmation unless your character already has stats.'''
+            
+            if len(args) is 1:
+                name = None
+                dice = args[0]
+            elif len(args) is 0:
+                name = None
+                dice = '3'
+            else:
+                dice = args[-1]
+                name = self.get_user_name(args[:-1])
+
+            try:
+                dice = int(dice)
+                if dice < 3:
+                    raise ValueError
+            except ValueError:
+                await self.bot.say("{} is not a valid number!".format(args[0]))
+                return
+
+            session = sql.sql.getSession()
+
+            try:
+                char, _ = await self.get_character(session, name, self.get_user_id(ctx))
+            except NoUserError:
+                return
+            
+            
+            stats = list()
+
+            for _ in range(7):
+                stats.append(util.roll_top(dice, 3, 6))
+
+            char.strength = stats[0]
+            char.intelligence = stats[1]
+            char.wisdom = stats[2]
+            char.dexterity = stats[3]
+            char.constitution = stats[4]
+            char.charisma = stats[5]
+            char.comeliness = stats[6]
+
+            character = char.get_character()
+
+            stats_temp = char.stats
+
+            errors = False
+            if character.race is not None:
+                staterrors = character.race.validate_stats(character.stats, char.gender)
+                for key, error in staterrors.items():
+                    if error is not None:
+                        await self.bot.say("{}\nAdjusting..".format(error.message))
+                        setattr(stats_temp, key, error.limit)
+                        errors = True
+
+            if errors:
+                char.stats = stats_temp
+                character.stats = stats_temp
+
+            session.commit()
+
+
+            message = "Set the following stats to {}\n**```css\n{}\n```**".format(
+                util.format_name(char.name),
+                self.get_stats(character)
+            )
+
+            await self.bot.say(message)
+    
+    @commands.command(pass_context=True)
+    async def setstat(self, ctx, *args):
         '''
-        List out all of the characters you have
+        Set a specific stat value.
+        Usage: !setStat [character] <str|int|wis|dex|con|cha|com> <value>
         '''
 
-        user_id = ctx.message.author.id
+        # Load the arguments
+        if len(args) is 2:
+            character = None
+        elif len(args) >= 3:
+            character = Character.get_user_name(args[:-2])
+        else:
+            await self.bot.say("Usage: !setStat [character] <str|int|wis|dex|con|cha|com> <value>")
+            return
+
+        pre_stat = args[-2]
+        value = args[-1]
+
+        # make sure the stat is lowercase and only the first 3 characters
+        stat = pre_stat.lower()[:3]
+        val = 10
+
+        # Parse the value
+        try:
+            val = int(value)
+        except ValueError:
+            await self.bot.say("{} is not a number".format(value))
+            return
 
         session = sql.sql.getSession()
-
-        user = session.query(User_model).get(user_id)
-        if user is None:
-            await self.bot.say(util.get_random_line(config.lines.user_error.no_user))
+        try:
+            char, _ = await self.get_character(session, character, self.get_user_id(ctx))
+        except NoUserError:
             return
 
-        characters = user.characters
-
-        if len(characters) is 0:
-            await self.bot.say(util.get_random_line(config.lines.user_error.no_char))
+        # Set the stat
+        if stat == 'str':
+            char.strength = val
+        elif stat == 'int':
+            char.intelligence = val
+        elif stat == 'wis':
+            char.wisdom = val
+        elif stat == 'dex':
+            char.dexterity = val
+        elif stat == 'con':
+            char.constitution = val
+        elif stat == 'cha':
+            char.charisma = val
+        elif stat == 'com':
+            char.comeliness = val
+        else:
+            await self.bot.say("{} is not a valid stat".format(pre_stat))
             return
         
-        message = "Here is a list of {}'s characters\n".format(ctx.message.author.name)
+        session.commit()
 
-        for char in characters:
-            message += "- {}\n".format(util.format_name(char.name))
-        
-        await self.bot.say(message)
+        await self.bot.say("{}\nSuccessfully changed your {} stat to {}".format(
+            util.get_random_line(config.lines.crits),
+            stat, val
+        ))
+
+        print("Changed {}'s {} stat to be {}\n{}".format(char.id, stat, val, char))

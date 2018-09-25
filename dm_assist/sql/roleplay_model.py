@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, String, SmallInteger, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, String, SmallInteger, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 # bigint    8 bytes     +-2^63-1    +-9,223,372,036,854,775,807
@@ -6,7 +6,8 @@ from sqlalchemy.orm import relationship
 # smallint  2 bytes     +-2^15-1    +-32,767
 
 from dm_assist.sql import sql
-from dm_assist.handbook import experience
+from dm_assist.handbook import experience, races
+from dm_assist import handbook
 
 base = sql.getBase()
 
@@ -23,13 +24,73 @@ class Character(base):
     charisma = Column(SmallInteger, nullable=False, default=10)
     comeliness = Column(SmallInteger, nullable=False, default=10)
 
+    str_mod = Column(SmallInteger, nullable=False, default=0)
+    int_mod = Column(SmallInteger, nullable=False, default=0)
+    wis_mod = Column(SmallInteger, nullable=False, default=0)
+    dex_mod = Column(SmallInteger, nullable=False, default=0)
+    con_mod = Column(SmallInteger, nullable=False, default=0)
+    cha_mod = Column(SmallInteger, nullable=False, default=0)
+    com_mod = Column(SmallInteger, nullable=False, default=0)
+
     xp = Column(Integer, nullable=False, default=0)
     classname = Column(String(10))
 
+    race = Column(String(10))
+    gender = Column(Boolean, nullable=False, default=True)
+
     user_id = Column(BigInteger, ForeignKey('user.id'))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def get_class(self):
-        return experience.classes.get(self.classname)
+        return experience.classes.get(self.classname)(race=self.get_race())
+    
+    def get_level(self):
+        clss = self.get_class()
+        if clss is not None:
+            return clss.get_level(self.xp)
+
+    def get_race(self):
+        return races.races.get(self.race)
+
+    @property    
+    def stats(self):
+        return handbook.Stats(self.strength, self.intelligence, self.wisdom, self.dexterity, self.constitution, self.charisma, self.comeliness)
+
+    @stats.setter
+    def stats(self, value: handbook.Stats):
+        self.strength = value.str
+        self.intelligence = value.int
+        self.wisdom = value.wis
+        self.dexterity = value.dex
+        self.constitution = value.con
+        self.charisma = value.cha
+        self.comeliness = value.com
+
+    @property
+    def stats_mod(self):
+        return handbook.Stats(self.str_mod, self.int_mod, self.wis_mod, self.dex_mod, self.con_mod, self.cha_mod, self.com_mod)
+
+    @stats_mod.setter
+    def stats_mod(self, value: handbook.Stats):
+        self.str_mod = value.str
+        self.int_mod = value.int
+        self.wis_mod = value.wis
+        self.dex_mod = value.dex
+        self.con_mod = value.con
+        self.cha_mod = value.cha
+        self.com_mod = value.com
+
+    def get_character(self):
+        return handbook.Character(
+            stats=self.stats,
+            stats_mod=self.stats_mod,
+            xp=self.xp,
+            classs=self.get_class(),
+            race=self.get_race(),
+            gender=self.gender
+        )
 
     def __repr__(self):
         return "<Character(name='{}', id='{}', player_id='{}', str={}, int={}, wis={}, dex={}, con={}, cha={}, com={})>".format(
