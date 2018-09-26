@@ -3,6 +3,10 @@ from discord.ext import commands
 
 import asyncio
 
+from dm_assist.config import config
+
+from . import advanced_shuffle
+
 
 class VoiceEntry:
     def __init__(self, message, player):
@@ -29,6 +33,13 @@ class VoiceState:
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
         self.loop = False
 
+        self._volume = config.config.voice.default_volume / 100
+        
+        self.backgrounds = config.music
+
+        self.current_theme = None
+        self.current_theme_message = None
+
     def is_playing(self):
         if self.voice is None or self.current is None:
             return False
@@ -47,17 +58,65 @@ class VoiceState:
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
+    
+    async def queue(self, song, message):
+        opts = {
+            'default_search': 'auto',
+            'quiet': True,
+        }
+        print('queueing ' + song)
+        try:
+            player = await self.voice.create_ytdl_player(song, ytdl_options=opts, after=self.toggle_next)
+        except Exception as e:
+            fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
+            await self.bot.send_message(self.current.channel, fmt.format(type(e).__name__, e))
+            return False
+        else:
+            entry = VoiceEntry(message, player)
+            await self.songs.put(entry)
+            return entry
+
+    async def play_background(self, background, message, stop_music=True):
+        if background in self.backgrounds:
+            self.current_theme = advanced_shuffle.Shuffle(self.backgrounds[background])
+            self.current_theme_message = message
+            if self.is_playing():
+                self.skip()
+            return await self.queue(self.current_theme.get_next_item(), message)
+        else:
+            return False
+    
+    def stop_background(self, stop_music=True):
+        self.current_theme = None
+        self.current_theme_message = None
+
+        if stop_music:
+            self.skip()
 
     async def audio_player_task(self):
         while True:
             self.play_next_song.clear()
             if self.loop == False:
+                # Add a song to the queue if there is no song currently on the queue, and there is a theme playing
+                if self.current_theme is not None and self.songs.empty():
+                    await self.queue(self.current_theme.get_next_item(), self.current_theme_message)
                 self.current = await self.songs.get()
             else:
                 self.current = self.current
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+            self.current.player.volume = self.volume
             self.current.player.start()
             await self.play_next_song.wait()
+    
+    @property
+    def volume(self):
+        return self._volume
+    
+    @volume.setter
+    def volume(self, value):
+        if self.is_playing():
+            self.current.player.volume = value
+        self._volume = value
 
 class Music:
     """Voice related commands.
@@ -99,8 +158,15 @@ class Music:
     #        self.loop = True
 
     @commands.command(pass_context=True, no_pm=True)
-    async def join(self, ctx, *, channel : discord.Channel):
+    async def join(self, ctx, *, channel = None):
         """Joins a voice channel."""
+        if channel is None:
+            await ctx.invoke(self.summon)
+            return
+        
+        # Find the channel the user is referring to
+        channel = discord.utils.find(lambda c: c.name == channel, ctx.message.server.channels)
+
         try:
             await self.create_voice_client(channel)
         except discord.InvalidArgument:
@@ -121,6 +187,7 @@ class Music:
         state = self.get_voice_state(ctx.message.server)
         if state.voice is None:
             state.voice = await self.bot.join_voice_channel(summoned_channel)
+            await self.bot.say('Ready to play audio in ' + summoned_channel.name)
         else:
             await state.voice.move_to(summoned_channel)
 
@@ -136,36 +203,81 @@ class Music:
         https://rg3.github.io/youtube-dl/supportedsites.html
         """
         state = self.get_voice_state(ctx.message.server)
-        opts = {
-            'default_search': 'auto',
-            'quiet': True,
-        }
 
         if state.voice is None:
             success = await ctx.invoke(self.summon)
             if not success:
                 return
 
-        try:
-            player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
-        except Exception as e:
-            fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
-            await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
+        result = await state.queue(song, ctx.message)
+
+        if result is not False:
+            await self.bot.say('Enqueued ' + str(result))
+    
+    @commands.command(pass_context=True, no_pm=True)
+    async def background(self, ctx, *, theme=None):
+        """Plays a list of background music.
+        If there is a song currently in the queue, then it is
+        queued until the next song is done playing.
+        This command plays random songs based on the theme in the config.yaml
+        """
+
+        state = self.get_voice_state(ctx.message.server)
+
+        async def print_help():
+            message = 'The possible themes are:\n```\n{}```'.format(
+                '\n'.join([theme.capitalize() for theme in state.backgrounds.keys()])
+            )
+            await self.bot.say(message)
+
+        if theme is None:
+            await print_help()
+            return
+
+        theme = theme.lower()
+
+        if state.voice is None:
+            success = await ctx.invoke(self.summon)
+            if not success:
+                return
+        
+        result = await state.play_background(theme, ctx.message)
+
+        if result is not False:
+            await self.bot.say('Queued {} music'.format(theme.capitalize()))
         else:
-            player.volume = 0.06
-            entry = VoiceEntry(ctx.message, player)
-            await self.bot.say('Enqueued ' + str(entry))
-            await state.songs.put(entry)
+            await print_help()
 
     @commands.command(pass_context=True, no_pm=True)
-    async def volume(self, ctx, value : int=100):
+    async def stopbackground(self, ctx):
+        """
+        Stops the current background music.
+
+        The current song will however not be stopped.
+        """
+
+        state = self.get_voice_state(ctx.message.server)
+
+        state.stop_background()
+
+        await self.bot.say('Stopped the background music.')
+
+    @commands.command(pass_context=True, no_pm=True)
+    async def volume(self, ctx, value=None):
         """Sets the volume of the currently playing song."""
 
         state = self.get_voice_state(ctx.message.server)
-        if state.is_playing():
-            player = state.player
-            player.volume = value / 100
-            await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
+
+        if value is None:
+            await self.bot.say('The current volume is {:.0%}'.format(state.volume))
+            return
+
+        try:
+            state.volume = int(value) / 100
+        except ValueError:
+            await self.bot.say('{} is not a valid volume'.format(value))
+        else:
+            await self.bot.say('Set the volume to {:.0%}'.format(state.volume))
 
     @commands.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
