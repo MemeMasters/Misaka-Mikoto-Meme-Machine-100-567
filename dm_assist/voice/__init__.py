@@ -158,8 +158,15 @@ class Music:
     #        self.loop = True
 
     @commands.command(pass_context=True, no_pm=True)
-    async def join(self, ctx, *, channel : discord.Channel):
+    async def join(self, ctx, *, channel = None):
         """Joins a voice channel."""
+        if channel is None:
+            await ctx.invoke(self.summon)
+            return
+        
+        # Find the channel the user is referring to
+        channel = discord.utils.find(lambda c: c.name == channel, ctx.message.server.channels)
+
         try:
             await self.create_voice_client(channel)
         except discord.InvalidArgument:
@@ -180,6 +187,7 @@ class Music:
         state = self.get_voice_state(ctx.message.server)
         if state.voice is None:
             state.voice = await self.bot.join_voice_channel(summoned_channel)
+            await self.bot.say('Ready to play audio in ' + summoned_channel.name)
         else:
             await state.voice.move_to(summoned_channel)
 
