@@ -1,8 +1,22 @@
 import random
 
+from . import truerandom
+
+
+def pre_fetch_rolls(times, sides):
+    from dm_assist.config import config
+    
+    base_times = config.config.random.preFetchCommonCount \
+        if sides in truerandom.common_randoms \
+        else config.config.random.preFetchCount
+
+    if times > base_times:
+        truerandom.populate_random_buffer(sides, times)
 
 def roll_die(sides: int) -> int:
-    return random.randint(1, sides)
+    if sides is 1:
+        return 1
+    return truerandom.randint(sides)
 
 
 def roll(times: int, sides: int) -> (int, int, int):
@@ -14,6 +28,8 @@ def roll(times: int, sides: int) -> (int, int, int):
 
     print("Rolling {count} {sides} sided dice.".format(
         count=times, sides=sides))
+
+    pre_fetch_rolls(times, sides)
 
     total = 0
     crit_fail = 0
@@ -34,6 +50,7 @@ def roll(times: int, sides: int) -> (int, int, int):
 
 
 def roll_top(times: int, top_rolls: int, sides: int) -> int:
+    pre_fetch_rolls(times, sides)
 
     rolls = list()
 
@@ -127,7 +144,7 @@ def parse_die_roll(text: str) -> dict:
 
 
 def get_random_line(messages: list):
-    return (messages[random.randint(0, len(messages)-1)])
+    return (messages[roll_die(len(messages)) - 1])
 
 
 def format_name(name: str) -> str:
