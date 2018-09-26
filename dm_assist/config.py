@@ -84,7 +84,12 @@ def get_defaults():
             opus='opus'
         ),
         prefix='!',
-        token='Insert Token Here'
+        token='Insert Token Here',
+        random=dict(
+            useRandomDotOrg=True,
+            preFetchCount=20,
+            preFetchCommonCount=30
+        )
     )
 
     defaults['lines'] = dict(
@@ -236,6 +241,7 @@ class Config(SettingDict):
         super().__init__(config)
         self._config = config
         self._voice = Voice(self._config['voice'])
+        self._random = Random(self._config['random'])
     
     @property
     def voice(self):
@@ -249,6 +255,10 @@ class Config(SettingDict):
     def token(self):
         return self._config['token']
 
+    @property
+    def random(self):
+        return self._random
+
 
 class Voice(SettingDict):
 
@@ -260,6 +270,24 @@ class Voice(SettingDict):
     def opus(self):
         return self._voice['opus']
 
+
+class Random(SettingDict):
+
+    def __init__(self, random):
+        super().__init__(random)
+        self._random = random
+    
+    @property
+    def useRandomDotOrg(self):
+        return self._random['useRandomDotOrg']
+
+    @property
+    def preFetchCount(self):
+        return self._random['preFetchCount']
+    
+    @property
+    def preFetchCommonCount(self):
+        return self._random['preFetchCommonCount']
 
 # Load the config on import
 load()
