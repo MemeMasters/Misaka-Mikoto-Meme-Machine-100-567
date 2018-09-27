@@ -93,17 +93,21 @@ def sigint_shutdown():
     finally:
         signal.signal(signal.SIGINT, original_sigint_handler)
 
-def serve():
+def serve(test=False, sql_file=None):
+    
     print("Loading configuration..")
-    try:
-        create_token()
-    except SystemExit:
-        return
+    if not test:
+        try:
+            create_token()
+        except SystemExit:
+            return
 
     print("Loading SQL..")
-    sql.sql.init()
 
-    print("Starting Bot..")
+    sql.sql.init(file=sql_file)
     
-    with sigint_shutdown():
-        Bot.run(conf.config.token)
+    if not test:
+        print("Starting Bot..")
+        with sigint_shutdown():
+            Bot.run(conf.config.token)
+        
