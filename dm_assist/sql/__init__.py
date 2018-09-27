@@ -39,7 +39,10 @@ class Sql:
         os.chdir(curr_dir)
 
 
-    def init(self):
+    def init(self, file=None):
+
+        if file is not None:
+            self.__class__._sql_file = file
 
         self._migrate_db()
 
