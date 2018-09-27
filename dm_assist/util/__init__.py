@@ -13,10 +13,10 @@ def pre_fetch_rolls(times, sides):
     if times > base_times:
         truerandom.populate_random_buffer(sides, times)
 
-def roll_die(sides: int) -> int:
+def roll_die(sides: int, use_true_random=True) -> int:
     if sides is 1:
         return 1
-    return truerandom.randint(sides)
+    return truerandom.randint(sides, use_true_random=use_true_random)
 
 
 def roll(times: int, sides: int) -> (int, int, int):
@@ -144,7 +144,7 @@ def parse_die_roll(text: str) -> dict:
 
 
 def get_random_line(messages: list):
-    return (messages[roll_die(len(messages)) - 1])
+    return (messages[roll_die(len(messages), False) - 1])
 
 
 def format_name(name: str) -> str:

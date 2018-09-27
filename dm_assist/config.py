@@ -4,7 +4,7 @@ from os.path import dirname
 from ruamel import yaml
 
 __config_file = os.path.join(dirname(dirname(__file__)), 'config.yaml')
-VERSION = 1
+VERSION = 2
 
 _conf = dict()
 
@@ -120,7 +120,7 @@ def get_defaults():
         )
     )
 
-    defaults['music'] = dict(
+    defaults['playlists'] = dict(
         majestic=["https://soundcloud.com/vindsvept/at-the-edge-of-the-world", "https://soundcloud.com/vindsvept/castle-in-the-sky", "https://soundcloud.com/vindsvept/vindsvept-moments-respite", "https://soundcloud.com/vindsvept/conjuration", "https://soundcloud.com/vindsvept/vindsvept-vasaloppet", "https://soundcloud.com/vindsvept/ruthless", "https://soundcloud.com/vindsvept/vindsveptfallen", "https://soundcloud.com/vindsvept/vindsvept-quests-end", "https://soundcloud.com/vindsvept/heart-of-ice"],
         tavern=["https://soundcloud.com/vindsvept/through-the-woods-we-ran", "https://soundcloud.com/vindsvept/light-of-the-sea", "https://soundcloud.com/vindsvept/a-new-adventure", "https://soundcloud.com/vindsvept/vindsvept-unsung-heroes", "https://soundcloud.com/vindsvept/vindsvept-from-afar", "https://soundcloud.com/vindsvept/vindsvept-dryads-dream", "https://soundcloud.com/vindsvept/vindsvept-spellbound-part-two", "https://soundcloud.com/vindsvept/gjallarhorn-awaken-the-gods-feat-gaute-ohrn", "https://soundcloud.com/vindsvept/vindsvept-across-the-plains", "https://soundcloud.com/vindsvept/vindsvept-hearthfire", "https://soundcloud.com/vindsvept/untamed", "https://soundcloud.com/vindsvept/seven-flowers", "https://soundcloud.com/vindsvept/the-forgotten-forest", "https://soundcloud.com/vindsvept/nightfall", "https://soundcloud.com/vindsvept/skymning"],
         quest=["https://soundcloud.com/vindsvept/vindsvept-one-step-too-far", "https://soundcloud.com/vindsvept/into-the-unknown", "https://soundcloud.com/vindsvept/i-kvallsljus", "https://soundcloud.com/vindsvept/to-vigrith-the-field-of-battle", "https://soundcloud.com/vindsvept/fimbulwinter-winter-following-winter", "https://soundcloud.com/vindsvept/vindsvept-across-the-plains", "https://soundcloud.com/vindsvept/a-song-from-the-deep", "https://soundcloud.com/vindsvept/over-the-mountain"],
@@ -139,6 +139,12 @@ def migrate(version):
     if version is -1:
         # There was no previous version, so there isn't anything we really can do
         return
+    
+    if version is 1:
+        # rename music to playlists
+        _conf['playlists'] = _conf['music']
+        del _conf['music']
+        version = 2
 
 class SettingDict:
 
@@ -183,8 +189,8 @@ class Conf(SettingDict):
         return self._lines
     
     @property
-    def music(self):
-        return self._conf['music']
+    def playlists(self):
+        return self._conf['playlists']
 
 
 class Lines(SettingDict):

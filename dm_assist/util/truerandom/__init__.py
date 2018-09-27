@@ -16,7 +16,7 @@ random_buffer = dict()
 
 common_randoms = [2, 4, 6, 8, 10, 12, 20, 100]
 
-def populate_random_buffer(max, prefetch=None):
+def populate_random_buffer(max, prefetch=None, use_true_random=True):
     """
     Populate the random_buffer with random numbers.
 
@@ -28,7 +28,7 @@ def populate_random_buffer(max, prefetch=None):
     def urandom_list(count):
         return [urandom.randint(1, max) for _ in range(count)]
 
-    if config.config.random.useRandomDotOrg:
+    if use_true_random and config.config.random.useRandomDotOrg:
         if max <= 100:
 
             if prefetch is None:
@@ -51,7 +51,7 @@ def populate_random_buffer(max, prefetch=None):
     else:
         random_buffer[str(max)] = numbers
 
-def randint(max):
+def randint(max, use_true_random=True):
     """
     Get a true random number.
     
@@ -71,12 +71,12 @@ def randint(max):
         try:
             ret = ret.pop(0)
         except IndexError:
-            populate_random_buffer(max)
+            populate_random_buffer(max, use_true_random=use_true_random)
             ret = random_buffer[index].pop(0)
 
         return ret
     
-    populate_random_buffer(max)
+    populate_random_buffer(max, use_true_random=use_true_random)
     
     return random_buffer[index].pop(0)
 

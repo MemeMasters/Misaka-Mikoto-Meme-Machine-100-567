@@ -59,7 +59,7 @@ class Shuffle(Sequence, Iterator):
         This uses the roll_die function, because the random algorithmn may change,
         and I want it to use program's algorythmn
         """
-        return self[util.roll_die(len(self)) - 1]
+        return self[util.roll_die(len(self), False) - 1]
     
     def clear_played(self):
         """
