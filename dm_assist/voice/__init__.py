@@ -9,17 +9,23 @@ from . import advanced_shuffle
 
 
 class VoiceEntry:
-    def __init__(self, message, player):
+    def __init__(self, message, player, playlist=None):
         self.requester = message.author
         self.channel = message.channel
         self.player = player
+        self.playlist = playlist
 
     def __str__(self):
-        fmt = '*{0.title}* uploaded by {0.uploader} and requested by {1.display_name}'
+        fmt = '*{0.title}* uploaded by {0.uploader}{2} and requested by {1.display_name}'
+
+        playlist = ''
+        if self.playlist is not None:
+            playlist = ' from the **{0}** playlist,'.format(self.playlist)
+
         duration = self.player.duration
         if duration:
             fmt = fmt + ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
-        return fmt.format(self.player, self.requester)
+        return fmt.format(self.player, self.requester, playlist)
 
 
 class VoiceState:
@@ -35,8 +41,9 @@ class VoiceState:
 
         self._volume = config.config.voice.default_volume / 100
         
-        self.backgrounds = config.music
+        self.playlists = config.playlists
 
+        self.current_theme_name = None
         self.current_theme = None
         self.current_theme_message = None
 
@@ -59,7 +66,7 @@ class VoiceState:
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
     
-    async def queue(self, song, message):
+    async def queue(self, song, message, playlist=None):
         opts = {
             'default_search': 'auto',
             'quiet': True,
@@ -72,21 +79,23 @@ class VoiceState:
             await self.bot.send_message(self.current.channel, fmt.format(type(e).__name__, e))
             return False
         else:
-            entry = VoiceEntry(message, player)
+            entry = VoiceEntry(message, player, playlist=playlist)
             await self.songs.put(entry)
             return entry
 
-    async def play_background(self, background, message, stop_music=True):
-        if background in self.backgrounds:
-            self.current_theme = advanced_shuffle.Shuffle(self.backgrounds[background])
+    async def play_playlist(self, playlist, message,  stop_music=True):
+        if playlist in self.playlists:
+            self.current_theme_name = playlist
+            self.current_theme = advanced_shuffle.Shuffle(self.playlists[playlist])
             self.current_theme_message = message
-            if self.is_playing():
-                self.skip()
-            return await self.queue(self.current_theme.get_next_item(), message)
+            if stop_music:
+                if self.is_playing():
+                    self.skip()
+                return await self.queue(self.current_theme.get_next_item(), message, self.current_theme_name)
         else:
             return False
     
-    def stop_background(self, stop_music=True):
+    def stop_playlist(self, stop_music=True):
         self.current_theme = None
         self.current_theme_message = None
 
@@ -99,7 +108,7 @@ class VoiceState:
             if self.loop == False:
                 # Add a song to the queue if there is no song currently on the queue, and there is a theme playing
                 if self.current_theme is not None and self.songs.empty():
-                    await self.queue(self.current_theme.get_next_item(), self.current_theme_message)
+                    await self.queue(self.current_theme.get_next_item(), self.current_theme_message, self.current_theme_name)
                 self.current = await self.songs.get()
             else:
                 self.current = self.current
@@ -215,8 +224,8 @@ class Music:
             await self.bot.say('Enqueued ' + str(result))
     
     @commands.command(pass_context=True, no_pm=True)
-    async def background(self, ctx, *, theme=None):
-        """Plays a list of background music.
+    async def playlist(self, ctx, *, theme=None):
+        """Plays a list of playlist music.
         If there is a song currently in the queue, then it is
         queued until the next song is done playing.
         This command plays random songs based on the theme in the config.yaml
@@ -226,7 +235,7 @@ class Music:
 
         async def print_help():
             message = 'The possible themes are:\n```\n{}```'.format(
-                '\n'.join([theme.capitalize() for theme in state.backgrounds.keys()])
+                '\n'.join([theme.capitalize() for theme in state.playlists.keys()])
             )
             await self.bot.say(message)
 
@@ -241,7 +250,7 @@ class Music:
             if not success:
                 return
         
-        result = await state.play_background(theme, ctx.message)
+        result = await state.play_playlist(theme, ctx.message)
 
         if result is not False:
             await self.bot.say('Queued {} music'.format(theme.capitalize()))
@@ -249,18 +258,18 @@ class Music:
             await print_help()
 
     @commands.command(pass_context=True, no_pm=True)
-    async def stopbackground(self, ctx):
+    async def stopplaylist(self, ctx):
         """
-        Stops the current background music.
+        Stops the current playlist music.
 
         The current song will however not be stopped.
         """
 
         state = self.get_voice_state(ctx.message.server)
 
-        state.stop_background()
+        state.stop_playlist()
 
-        await self.bot.say('Stopped the background music.')
+        await self.bot.say('Stopped the playlist music.')
 
     @commands.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value=None):
