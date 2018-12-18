@@ -19,12 +19,15 @@ class Calculator:
         '+': 2, '-': 2,
         '*': 3, '/': 3,
         '^':4, '%':4,
-        'd': 5, 'adv': 5, 'dis': 5, 'top': 5, 'bot': 5,
-        'round': 6}
+        'd': 5,
+        'round': 6, 'adv': 6, 'dis': 6, 'top': 6, 'bot': 6
+    }
     
     # A function by default has 2 arguments, if it does not, list the number required here.
     function_length = {
         'round': 1,
+        'adv': 1,
+        'dis': 1,
         'top': 3,
         'bot': 3
     }
@@ -38,10 +41,10 @@ class Calculator:
         '^': lambda a, b: a ** b,
         '%': lambda a, b: a % b,
         'd': lambda a, b: dice.roll_sum(round(b), round(a))[0],
-        'adv': lambda a, b: dice.roll_top(round(b), 1, round(a)),
-        'dis': lambda a, b: dice.roll_top(round(b), 1, round(a), False),
+        'adv': lambda a, b: dice.roll_top(round(b), 1, 2),
+        'dis': lambda a, b: dice.roll_top(round(b), 1, 2, False),
         'top': lambda a, b, c: dice.roll_top(round(b), round(c), round(a)),
-        'bot': lambda a, b, c: dice.roll_top(round(b), round(c), round(a)),
+        'bot': lambda a, b, c: dice.roll_top(round(b), round(c), round(a), False),
         'round': lambda a: round(a)
     }
 
@@ -74,22 +77,35 @@ class Calculator:
                         pop = stack.pop()
                         if pop == '(':
                             break
-                        equation.append(pop)
+                        if pop != ',':
+                            equation.append(pop)
                 else:
                     if i == '(':
                         num_parens += 1
+                    elif i == ',':  # commas are treated like paranthathese
+                        broken = False
+                        while len(stack) > 0:
+                            peek = stack[-1]
+                            if peek != '(':
+                                stack.pop()
+                            if peek == ',' or peek == '(':
+                                broken = True
+                                break
+                            equation.append(peek)
+                        if not broken:
+                            raise BadEquation("Improper use of commas.")
                     else:
                         # If the precidence of the stack is greater than the current precidence, than pop until it's not
                         while len(stack) > 0 and self.__class__.precidence.get(i, 0) <= self.__class__.precidence.get(stack[-1], 0):
                             pop = stack.pop()
                             if pop == '(':
-                                raise BadEquation("Mismatched parentheses")
+                                raise BadEquation("Mismatched parentheses.")
                             equation.append(pop)
                     # Add the operator to the stack
                     stack.append(i)
         
         if num_parens is not 0:
-            raise BadEquation("Mismatched parentheses")
+            raise BadEquation("Mismatched parentheses.")
         
         while len(stack) > 0:
             equation.append(stack.pop())
@@ -116,12 +132,12 @@ class Calculator:
                         # Process the function
                         stack.append(self.__class__.functions[i](*operands))
                     except IndexError:
-                        raise BadEquation("Unbalanced number of operators or operands")
+                        raise BadEquation("Unbalanced number of operators or operands.")
                 except IndexError:
-                    raise BadEquation("Invalid Operator '{}'".format(i))
+                    raise BadEquation("Invalid Operator '{}'.".format(i))
         
         if len(stack) is not 1:
-            raise BadEquation("Invalid number of operands")
+            raise BadEquation("Invalid number of operands.")
         
         return stack.pop()
 
@@ -150,11 +166,11 @@ class Calculator:
         # parse the string into a list of operators and operands.
 
         # (?|?|?) regex or
-        # [^\w.,\s] matches any single character that is not a word, number, _, `,`, or whitespace
+        # [^\w.,\s] matches any single character that is not a word, number, _, or whitespace
         # [\d.]+ matches any number
         # [a-z]+ matches any lower case word
         # goto https://regex101.com/ for help creating your own regexes.
-        equation = re.findall(r"([^\w.,\s]|[\d.]+|[a-z]+)", string.lower())
+        equation = re.findall(r"([^\w.\s]|[\d.]+|[a-z]+)", string.lower())
 
         # Parse the equation using the Shunting Yard Algorithm
         equation = self._load_equation(equation)
