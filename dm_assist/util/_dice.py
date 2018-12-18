@@ -8,31 +8,72 @@ class Dice:
 
     def __init__(self):
         self._low = False
+        self._rolled_dice = list()
+        self._enable_logging = False
+
+    @property
+    def logging_enabled(self):
+        return self._enable_logging
+
+    @logging_enabled.setter
+    def logging_enabled(self, value):
+        """
+        Setting this to True will clear the current log.
+        """
+        if value is True:
+            self._rolled_dice = list()
+        self._enable_logging = bool(value)
 
     @property
     def low(self):
         return self._low
+    
+    @property
+    def rolled_dice(self):
+        """
+        This is a log of all the dice rolled.
+
+        To enable the logging of dice, the variable logging_enabled 
+        should be set to True. That way, any unintentional dice rolls 
+        will not be logged.
+
+        Reading from rolled_dice will clear the list.
+        """
+        dice = self._rolled_dice
+        self._rolled_dice = list()
+        return dice
 
     async def load_random_buffer(self):
         asyncio.ensure_future(truerandom.populate_random_buffer(120, 30, True))
         self._low = False
 
+    def __log_roll(self, value):
+        if self._enable_logging:
+            self._rolled_dice.append(value)
+
     def _roll(self, sides: int) -> int:
         if sides is 1:
+            self.__log_roll((1, 1))
             return 1
 
         if 120 % sides is 0:
             rand, self._low = truerandom.randint(120, use_true_random=True)
-            return rand % sides + 1
-        return truerandom.randint(sides, use_true_random=False)[0]
+            die = rand % sides + 1
+            self.__log_roll((die, sides))
+            return die
+        die = truerandom.randint(sides, use_true_random=False)[0]
+        self.__log_roll((die, sides))
+        return die
     
     def roll(self, sides: int) -> int:
         # "Authentically" roll percentile dice
         if sides % 100 is 0:
             dice = len(str(sides)) - 1
             result = 0
-            for i in range(dice):
-                result += 10 ** i * (self._roll(10) - 1)
+            for i in reversed(range(dice)):
+                roll = self._roll(10)
+                roll = 0 if roll is 10 else roll
+                result += 10 ** i * roll
             if result is 0:
                 result = sides
             return result

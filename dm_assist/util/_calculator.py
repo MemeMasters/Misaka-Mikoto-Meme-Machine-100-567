@@ -40,8 +40,8 @@ class Calculator:
         'd': lambda a, b: dice.roll_sum(round(b), round(a))[0],
         'adv': lambda a, b: dice.roll_top(round(b), 1, round(a)),
         'dis': lambda a, b: dice.roll_top(round(b), 1, round(a), False),
-        'top': lambda a, b, c: dice.roll_top(round(b), round(c), round(b)),
-        'bot': lambda a, b, c: dice.roll_top(round(b), round(c), round(b)),
+        'top': lambda a, b, c: dice.roll_top(round(b), round(c), round(a)),
+        'bot': lambda a, b, c: dice.roll_top(round(b), round(c), round(a)),
         'round': lambda a: round(a)
     }
 
