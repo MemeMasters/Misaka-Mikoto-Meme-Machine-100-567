@@ -1,9 +1,20 @@
-from . import random, _calculator
 
+
+class BadEquation(Exception):
+    pass
+
+
+# dice needs to be setup first, as calculator depends on dice
+from . import _dice
+dice = _dice.Dice()
+
+
+from . import _calculator
 calculator = _calculator.Calculator()
 
+
 def get_random_line(messages: list):
-    return (messages[random.roll_die(len(messages), False) - 1])
+    return (messages[dice.roll(len(messages)) - 1])
 
 
 def format_name(name: str) -> str:

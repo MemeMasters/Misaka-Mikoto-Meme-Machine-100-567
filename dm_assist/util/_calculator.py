@@ -1,20 +1,32 @@
 import re
 
-from . import random
-
-
-class BadEquation(Exception):
-    pass
+from . import dice, BadEquation
 
 
 class Calculator:
+    """
+    This parses textual equations, and calculates the result.
+
+    If you want to add your own functions, all you need to do is to set 
+    its precidence in the precidence variable, set the number of operands
+    needed if it has more or less than 2, and create the function as a lambda
+    in the functions dict.
+
+    """
 
     # Lower numbers mean a lower precidence (it is less important)
-    precidence = {'+': 2, '-': 2, '*': 3, '/': 3, '^':4, '%':4, 'd': 5, 'round': 6}
+    precidence = {
+        '+': 2, '-': 2,
+        '*': 3, '/': 3,
+        '^':4, '%':4,
+        'd': 5, 'adv': 5, 'dis': 5, 'top': 5, 'bot': 5,
+        'round': 6}
     
     # A function by default has 2 arguments, if it does not, list the number required here.
     function_length = {
-        'round': 1
+        'round': 1,
+        'top': 3,
+        'bot': 3
     }
 
     # All the functions are defined here as lambdas.
@@ -25,7 +37,11 @@ class Calculator:
         '/': lambda a, b: a / b,
         '^': lambda a, b: a ** b,
         '%': lambda a, b: a % b,
-        'd': lambda a, b: random.roll(round(a), round(b)),
+        'd': lambda a, b: dice.roll_sum(round(b), round(a))[0],
+        'adv': lambda a, b: dice.roll_top(round(b), 1, round(a)),
+        'dis': lambda a, b: dice.roll_top(round(b), 1, round(a), False),
+        'top': lambda a, b, c: dice.roll_top(round(b), round(c), round(b)),
+        'bot': lambda a, b, c: dice.roll_top(round(b), round(c), round(b)),
         'round': lambda a: round(a)
     }
 
@@ -131,7 +147,8 @@ class Calculator:
         If there is a formatting problem with the given equation, a BadEquation error
         will be thrown.
         """
-        # parse the string into their respective operators and operands.
+        # parse the string into a list of operators and operands.
+
         # (?|?|?) regex or
         # [^\w.,\s] matches any single character that is not a word, number, _, `,`, or whitespace
         # [\d.]+ matches any number

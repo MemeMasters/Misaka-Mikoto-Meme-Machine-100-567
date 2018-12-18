@@ -1,4 +1,5 @@
 import random
+import asyncio
 from asyncio import Queue
 
 # Urandom is used as a backup if your quota is used up.
@@ -8,48 +9,41 @@ from asyncio import Queue
 
 urandom = random.SystemRandom()
 
-from dm_assist.config import config
-
 from .randomwrapy import *
 
 random_buffer = dict()
 
-common_randoms = [2, 4, 6, 8, 10, 12, 20, 100]
 
-def populate_random_buffer(max, prefetch=None, use_true_random=True):
+def urandom_list(count, max):
+    return [urandom.randint(1, max) for _ in range(count)]
+
+async def populate_random_buffer(max, prefetch=None, use_true_random=True):
     """
     Populate the random_buffer with random numbers.
 
     If the number is larger than 100, then urandom will be used.
     """
 
-    num = prefetch if prefetch is not None else config.config.random.preFetchCount
+    num = prefetch if prefetch is not None else 30
 
-    def urandom_list(count):
-        return [urandom.randint(1, max) for _ in range(count)]
-
-    if use_true_random and config.config.random.useRandomDotOrg:
-        if max <= 100:
-
-            if prefetch is None:
-                num = config.config.random.preFetchCommonCount if max in common_randoms else config.config.random.preFetchCount
-
-            try:
-                print('TrueRandom: Fetching {} true Random numbers from 1 to {}'.format(num, max))
-                numbers = rnumlistwithreplacement(10, max, 1)
-            except NoQuotaError:
-                print('TrueRandom: Daily quota has run out, using urandom instead')
-            else:
-                numbers = urandom_list(num)
+    if use_true_random:
+        try:
+            print('TrueRandom: Fetching {} true Random numbers from 1 to {}'.format(num, max))
+            numbers = rnumlistwithreplacement(num, max, 1)
+        except NoQuotaError:
+            print('TrueRandom: Daily quota has run out, using urandom instead')
         else:
-            numbers = urandom_list(config.config.random.preFetchCount)
+            numbers = urandom_list(num, max)
     else:
-        numbers = urandom_list(config.config.random.preFetchCount)
+        numbers = urandom_list(num, max)
 
-    if str(max) in random_buffer:
-        random_buffer[str(max)].extend(numbers)
-    else:
-        random_buffer[str(max)] = numbers
+    if str(max) not in random_buffer:
+        random_buffer[str(max)] = Queue()
+    
+    queue = random_buffer[str(max)]
+    for value in numbers:
+        await queue.put(value)
+
 
 def randint(max, use_true_random=True):
     """
@@ -65,19 +59,14 @@ def randint(max, use_true_random=True):
     """
     index = str(max)
 
-    ret = random_buffer.get(index)
+    buf = random_buffer.get(index)
 
-    if ret is not None:
+    if buf is not None:
         try:
-            ret = ret.pop(0)
-        except IndexError:
-            populate_random_buffer(max, use_true_random=use_true_random)
-            ret = random_buffer[index].pop(0)
+            ret = buf.get_nowait()
+        except asyncio.QueueEmpty:
+            ret = urandom_list(1, max)[0]
+    else:
+        ret = urandom_list(1, max)[0]
 
-        return ret
-    
-    populate_random_buffer(max, use_true_random=use_true_random)
-    
-    return random_buffer[index].pop(0)
-
-
+    return ret, buf is None or buf.qsize() < 10
