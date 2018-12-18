@@ -664,7 +664,7 @@ class Character:
             stats = list()
 
             for _ in range(7):
-                stats.append(util.roll_top(dice, 3, 6))
+                stats.append(util.dice.roll_top(6, 3, dice))
 
             char.strength = stats[0]
             char.intelligence = stats[1]
