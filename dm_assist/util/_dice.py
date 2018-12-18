@@ -7,7 +7,7 @@ from . import truerandom
 class Dice:
 
     def __init__(self):
-        self._low = True
+        self._low = False
 
     @property
     def low(self):
@@ -15,8 +15,12 @@ class Dice:
 
     async def load_random_buffer(self):
         asyncio.ensure_future(truerandom.populate_random_buffer(120, 30, True))
+        self._low = False
 
     def _roll(self, sides: int) -> int:
+        if sides is 1:
+            return 1
+
         if 120 % sides is 0:
             rand, self._low = truerandom.randint(120, use_true_random=True)
             return rand % sides + 1
