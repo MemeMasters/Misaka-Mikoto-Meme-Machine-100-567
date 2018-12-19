@@ -1,4 +1,4 @@
-import random
+import math
 import asyncio
 
 from . import truerandom
@@ -56,7 +56,7 @@ class Dice:
             self.__log_roll((1, 1))
             return 1
 
-        if 120 % sides is 0:
+        if  120 % sides is 0:
             rand, self._low = truerandom.randint(120, use_true_random=True)
             die = rand % sides + 1
             self.__log_roll((die, sides))
@@ -67,7 +67,8 @@ class Dice:
     
     def roll(self, sides: int) -> int:
         # "Authentically" roll percentile dice
-        if sides % 100 is 0:
+        log10 = math.log10(sides)
+        if sides != 10 and int(log10) == log10:
             dice = len(str(sides)) - 1
             result = 0
             for i in reversed(range(dice)):

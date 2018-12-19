@@ -13,7 +13,7 @@ from . import _calculator
 calculator = _calculator.Calculator()
 
 
-def get_random_line(messages: list):
+def get_random_index(messages: list):
     return (messages[dice.roll(len(messages)) - 1])
 
 

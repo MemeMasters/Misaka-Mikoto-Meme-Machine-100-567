@@ -12,8 +12,6 @@ from dm_assist import voice
 from dm_assist import misc
 from dm_assist import roleplay
 
-import dm_assist.roleplay.character
-
 
 Bot = commands.Bot(
     command_prefix=commands.when_mentioned_or(conf.config.prefix),
@@ -22,7 +20,6 @@ Bot = commands.Bot(
 
 
 Bot.add_cog(voice.Music(Bot))
-Bot.add_cog(roleplay.character.Character(Bot))
 Bot.add_cog(misc.Misc(Bot))
 Bot.add_cog(roleplay.Roleplay(Bot))
 
