@@ -11,7 +11,6 @@ from dm_assist.config import config as conf
 from dm_assist import voice
 from dm_assist import misc
 from dm_assist import roleplay
-from dm_assist import sql
 
 import dm_assist.roleplay.character
 
@@ -101,10 +100,6 @@ def serve(test=False, sql_file=None):
             create_token()
         except SystemExit:
             return
-
-    print("Loading SQL..")
-
-    sql.sql.init(file=sql_file)
     
     if not test:
         print("Starting Bot..")
