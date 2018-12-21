@@ -1,3 +1,5 @@
+import logging
+
 import random
 import asyncio
 from asyncio import Queue
@@ -12,6 +14,8 @@ urandom = random.SystemRandom()
 from .randomwrapy import *
 
 random_buffer = dict()
+
+_logger = logging.getLogger(__name__)
 
 
 def urandom_list(count, max):
@@ -28,13 +32,14 @@ async def populate_random_buffer(max, prefetch=None, use_true_random=True):
 
     if use_true_random:
         try:
-            print('TrueRandom: Fetching {} true Random numbers from 1 to {}'.format(num, max))
+            _logger.info('TrueRandom: Fetching {} true Random numbers from 1 to {}'.format(num, max))
             numbers = rnumlistwithreplacement(num, max, 1)
         except NoQuotaError:
-            print('TrueRandom: Daily quota has run out, using urandom instead')
+            _logger.warning('TrueRandom: Daily quota has run out, using urandom instead')
         else:
             numbers = urandom_list(num, max)
     else:
+        _logger.info('Generating {} random numbers from 1 to {}'.format(num, max))
         numbers = urandom_list(num, max)
 
     if str(max) not in random_buffer:
@@ -61,7 +66,7 @@ def randint(max, use_true_random=True):
 
     buf = random_buffer.get(index)
 
-    if buf is not None:
+    if buf is not None and use_true_random is True:
         try:
             ret = buf.get_nowait()
         except asyncio.QueueEmpty:

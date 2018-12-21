@@ -1,4 +1,6 @@
 import os
+import logging
+
 import json
 from marshmallow import Schema, fields, post_load
 
@@ -79,6 +81,8 @@ class Database:
     music_file = base_dir + "playlists.json"
 
     def __init__(self):
+        self._logger = logging.getLogger(__name__)
+
         self.users = list()
         self.items = list()
         self.characters = list()
@@ -110,9 +114,9 @@ class Database:
     def _load_json(self, name):
         from os import path
         from os.path import dirname as d
-        path = d(d(d(__file__)))
+        directory = d(d(d(__file__)))
 
-        f = open(path.join(path, name), 'r')
+        f = open(path.join(directory, name), 'r')
         data = json.load(f)
         f.close()
 
@@ -121,9 +125,9 @@ class Database:
     def _dump_json(self, name, data):
         from os import path
         from os.path import dirname as d
-        path = d(d(d(__file__)))
+        directory = d(d(d(__file__)))
 
-        f = open(path.join(path, name), 'w')
+        f = open(path.join(directory, name), 'w')
         json.dump(data, f)
         f.close()
     
@@ -151,7 +155,7 @@ class Database:
             items = self._load_json(self.__class__.item_file)
             playlists = self._load_json(self.__class__.music_file)
         except OSError:
-            print("Could not open database. dumping..")
+            self._logger.warning("Could not open database. dumping..")
             self.dump()
             return
 

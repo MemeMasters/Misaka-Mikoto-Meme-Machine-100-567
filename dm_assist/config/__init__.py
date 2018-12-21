@@ -1,18 +1,22 @@
 import os
 from os.path import dirname
 
+import logging
+
 from ruamel import yaml
 
-__config_file = os.path.join(dirname(dirname(__file__)), 'config.yaml')
+__config_file = os.path.join(dirname(dirname(dirname(__file__))), 'config.yaml')
 VERSION = 2
 
 _conf = dict()
+
+_logger = logging.getLogger(__name__)
 
 def save():
     """
     Save the config file
     """
-    print("Saving config file..")
+    _logger.info("Saving config file..")
 
     res = yaml.round_trip_dump(_conf, indent=2, block_seq_indent=1)
 
@@ -24,7 +28,7 @@ def load():
     """
     Load the config file.
     """
-    print("Loading Configuration file..")
+    _logger.info("Loading Configuration file..")
 
     def load_defaults():
         global _conf
@@ -60,13 +64,13 @@ def load():
         from collections import Mapping
         changed = False
         for key, val in new.items():
-            # print("{} ({})".format(key, type(old.get(key))))
+            # _logger.debug("{} ({})".format(key, type(old.get(key))))
             if not key in old:
-                print("{}Adding new value {}".format('  ' * layer, key))
+                _logger.debug("{}Adding new value {}".format('  ' * layer, key))
                 changed = True
                 old[key] = val
             elif issubclass(type(old[key]), Mapping) and issubclass(type(val), Mapping):
-                print("{}Merging dict {}".format('  ' * layer, key))
+                _logger.debug("{}Merging dict {}".format('  ' * layer, key))
                 changed = changed or mergeDict(old[key], val, layer + 1)
 
         return changed
@@ -135,7 +139,7 @@ def get_defaults():
 
 
 def migrate(version):
-    print("Migrating old config version from v{} to v{}..".format(version, VERSION))
+    _logger.info("Migrating old config version from v{} to v{}..".format(version, VERSION))
     if version is -1:
         # There was no previous version, so there isn't anything we really can do
         return

@@ -2,6 +2,7 @@ import math
 import asyncio
 
 from . import truerandom
+from ..config import config
 
 
 class Dice:
@@ -44,7 +45,7 @@ class Dice:
         return dice
 
     async def load_random_buffer(self):
-        asyncio.ensure_future(truerandom.populate_random_buffer(120, 30, True))
+        asyncio.ensure_future(truerandom.populate_random_buffer(120, 30, config.config.random.useRandomDotOrg))
         self._low = False
 
     def __log_roll(self, value):
